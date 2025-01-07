@@ -4,8 +4,8 @@
 
 You can install `daisy-dtb` with all common python dependancies manager.
 
-* With `pip` : ```pip install daisy-dtb```
-* With `uv` : ```uv add daisy-dtb```
+* With pip : ```pip install daisy-dtb```
+* With uv : ```uv add daisy-dtb```
 
 
 ## References

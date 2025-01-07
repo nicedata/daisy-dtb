@@ -1,6 +1,4 @@
-"""
-    Daisy library
-"""
+"""Daisy library"""
 
 import time
 from dataclasses import InitVar, dataclass, field
@@ -14,9 +12,7 @@ from domlib import DomFactory
 
 @dataclass
 class MetaData:
-    """
-    Representation of metadata.
-    """
+    """Representation of metadata."""
 
     name: str
     content: str
@@ -25,9 +21,7 @@ class MetaData:
 
 @dataclass
 class NccEntry:
-    """
-    Representation of an entry in the NCC file.
-    """
+    """Representation of an entry in the NCC file."""
 
     id: str
     level: int
@@ -39,9 +33,7 @@ class NccEntry:
 
 @dataclass
 class Text:
-    """
-    Representation of a text fragment in a text source file.
-    """
+    """Representation of a text fragment in a text source file."""
 
     id: str
     text_file: str
@@ -51,9 +43,7 @@ class Text:
 
 @dataclass
 class Clip:
-    """
-    Representation of an audio clip.
-    """
+    """Representation of an audio clip."""
 
     parent: "Par"
     id: str
@@ -68,9 +58,7 @@ class Clip:
 
 @dataclass
 class Par:
-    """
-    Representation of a <par/> section in as SMIL file.
-    """
+    """Representation of a <par/> section in as SMIL file."""
 
     id: str
     text: Text = None
@@ -79,9 +67,7 @@ class Par:
 
 @dataclass
 class Smil:
-    """
-    Representation of a SMIL file.
-    """
+    """Representation of a SMIL file."""
 
     smil_path: InitVar[Path]
     parent: InitVar[NccEntry]
@@ -137,9 +123,7 @@ class Smil:
 
 @dataclass
 class DaisyBook:
-    """
-    Representation of a full Daisy 2.02 project.
-    """
+    """Representation of a full Daisy 2.02 project."""
 
     project_folder: Path
     title: str = ""
