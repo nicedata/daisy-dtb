@@ -11,4 +11,5 @@ wheels/
 
 # UV stuff
 uv.lock
+.coverage
 
