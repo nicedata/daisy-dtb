@@ -14,7 +14,7 @@ env:
 
 jobs:
   details:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2204
     outputs:
       new_version: ${{ steps.release.outputs.new_version }}
       suffix: ${{ steps.release.outputs.suffix }}
@@ -42,7 +42,7 @@ jobs:
 
   check_pypi:
     needs: details
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2204
     steps:
       - name: Fetch information from PyPI
         run: |
@@ -68,7 +68,7 @@ jobs:
 
   setup_and_build:
     needs: [details, check_pypi]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2204
     steps:
       - uses: actions/checkout@v2
 
@@ -94,7 +94,7 @@ jobs:
           poetry build
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -102,7 +102,7 @@ jobs:
   pypi_publish:
     name: Upload release to PyPI
     needs: [setup_and_build, details]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2204
     environment:
       name: release
     permissions:
@@ -120,7 +120,7 @@ jobs:
   github_release:
     name: Create GitHub Release
     needs: [setup_and_build, details]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-2204
     permissions:
       contents: write
     steps:
