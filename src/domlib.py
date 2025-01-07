@@ -55,12 +55,16 @@ class Element(XdmElement):
 class ElementList:
     _elements: List[Element] = field(default_factory=list)
 
+    @property
+    def size(self):
+        return len(self._elements)
+
     def add_element(self, element: Element) -> None:
         if element and isinstance(element, Element):
             self._elements.append(element)
 
     def first(self) -> Element | None:
-        return self._elements[0] if len(self._elements) > 0 else None
+        return self._elements[0] if self.size > 0 else None
 
     def all(self) -> List[Element]:
         return self._elements
