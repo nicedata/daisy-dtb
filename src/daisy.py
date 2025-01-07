@@ -133,18 +133,14 @@ class DaisyBook:
     _start = time.time()
 
     def _process_meta(self, data: str) -> None:
-        """
-        Process and store all metadata.
-        """
+        """Process and store all metadata."""
         for element in DomFactory.create_document_from_string(data).get_elements("meta").all():
             name = element.get_attr("name")
             if name:
                 self.metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
 
     def _process_headers(self, data: str):
-        """
-        Process and store the NCC entries (hx tags).
-        """
+        """Process and store the NCC entries (hx tags)."""
         body = DomFactory.create_document_from_string(data).get_elements("body").first()
         for el in body.get_children().all():
             if el.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
