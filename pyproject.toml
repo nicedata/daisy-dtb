@@ -3,5 +3,5 @@ name = "dausy_dtb"
 version = "0.0.1"
 description = "A library to deal with Daisy 2.02 digital talking books"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = []
