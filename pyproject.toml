@@ -5,3 +5,11 @@ description = "A library to deal with Daisy 2.02 digital talking books"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[tool.poetry]
+name = "daisy-dtb"
+version = "0.0.1"
+description = "A library to deal with Daisy 2.02 digital talking books"
+authors = ["nicedata"]
+license = "MIT"
+readme = "README.md"
