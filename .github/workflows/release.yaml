@@ -9,9 +9,9 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
 
 env:
-  PACKAGE_NAME: "daisy_dtb"
+  PACKAGE_NAME: "daisy-dtb"
   OWNER: "nicedata"
-  TAP_NAME: "daisy_dtb"
+  TAP_NAME: "daisy-dtb"
 
 jobs:
   details:
