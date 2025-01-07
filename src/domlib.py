@@ -72,9 +72,12 @@ class ElementList:
 
 @dataclass
 class Document:
+    """This class represents a whole xml or html document."""
+
     _root: XdmDocument = None
 
     def get_element_by_id(self, id: str) -> Element | None:
+        """Get an element by its id"""
         for elt in self._root.getElementsByTagName("*"):
             if elt.getAttribute("id") == id:
                 return Element(_node=elt)
@@ -85,9 +88,11 @@ class Document:
         if self._root is None:
             return None
 
+        # No filter : get all elements
         if len(filter.items()) == 0:
             return DomFactory.create_element_list(self._root.getElementsByTagName(tag_name))
 
+        # With filtering
         result = ElementList()
         for elt in self._root.getElementsByTagName(tag_name):
             for k, v in filter.items():
@@ -98,6 +103,8 @@ class Document:
 
 
 class DomFactory:
+    """This class holds a collection of static methods to create class instances."""
+
     @staticmethod
     def create_document_from_string(string: str) -> Document | None:
         try:
