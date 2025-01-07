@@ -1,0 +1,42 @@
+import os
+
+from domlib import Document, DomFactory
+from utils import get_test_string
+
+
+def test_create_document_from_url():
+    """Test document creation from document URLs"""
+
+    # Valid urls
+    valid_urls = [
+        "http://webplayer.abage.ch/media/VOTATIONS/VF/ncc.html",
+        "https://webplayer.abage.ch/media/VOTATIONS/VF/source.html",
+        "https://webplayer.abage.ch/media/VOTATIONS/VF/dijn0016.smil",
+    ]
+
+    for url in valid_urls:
+        document = DomFactory.create_document_from_url(url)
+        assert type(document) == Document
+
+    # Invalid urls
+    invalid_urls = [
+        "htt://webplayer.abage.ch/media/VOTATIONS/VF/ncc.html",
+        "https://nodomain/media/VOTATIONS/VF/source.html",
+        "https://webplayer.abage.ch/media/VOTATIONS/VF/error",
+    ]
+    for url in invalid_urls:
+        document = DomFactory.create_document_from_url(url)
+        assert document == None
+
+
+def test_create_document_from_string():
+
+    # This should fail
+    string = ""
+    document = DomFactory.create_document_from_string(string)
+    assert document == None
+
+    # This should be OK
+    string = get_test_string()
+    document = DomFactory.create_document_from_string(string)
+    assert type(document) == Document

@@ -4,8 +4,17 @@ version = "0.0.1"
 description = "A library to deal with Daisy 2.02 digital talking books"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["loguru>=0.7.3"]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
+
+
+[tool.pytest.ini_options]
+pythonpath = "src"
 
 [tool.poetry]
 name = "daisy-dtb"
