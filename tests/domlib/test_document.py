@@ -45,5 +45,5 @@ def test_get_elements_with_filter():
 
     elements = document.get_elements("*", filter)
     assert elements.size == 1
-    assert elements.name == "a"
+    assert elements.first().name == "a"
     assert elements.first().get_text() == "Recommandation du Conseil fédéral et du Parlement"
