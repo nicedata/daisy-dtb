@@ -1,5 +1,3 @@
-import os
-
 from domlib import Document, DomFactory
 from utils import get_test_string
 
@@ -16,7 +14,7 @@ def test_create_document_from_url():
 
     for url in valid_urls:
         document = DomFactory.create_document_from_url(url)
-        assert type(document) == Document
+        assert type(document) is Document
 
     # Invalid urls
     invalid_urls = [
@@ -26,17 +24,16 @@ def test_create_document_from_url():
     ]
     for url in invalid_urls:
         document = DomFactory.create_document_from_url(url)
-        assert document == None
+        assert document is None
 
 
 def test_create_document_from_string():
+    # This should be OK
+    string = get_test_string()
+    document = DomFactory.create_document_from_string(string)
+    assert type(document) is Document
 
     # This should fail
     string = ""
     document = DomFactory.create_document_from_string(string)
-    assert document == None
-
-    # This should be OK
-    string = get_test_string()
-    document = DomFactory.create_document_from_string(string)
-    assert type(document) == Document
+    assert document is None

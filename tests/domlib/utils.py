@@ -10,7 +10,7 @@ def get_test_string() -> str | None:
     try:
         with open(TEST_FILE_PATH, "rt") as file:
             return file.read()
-    except:
+    except FileNotFoundError:
         return None
 
 

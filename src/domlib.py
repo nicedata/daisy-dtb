@@ -1,4 +1,4 @@
-"""Classes to encapsulate `xml.dom.minidom`."""
+"""Classes to encapsulate and simplify the usage of the xml.dom.minidom library."""
 
 import re
 import urllib.request
@@ -14,28 +14,36 @@ from loguru import logger
 
 
 @dataclass
-class Element(XdmElement):
-    _node: XdmElement = None
-    _children: List["Element"] = field(default_factory=list)
+class Element:
+    """Representation of a DOM element."""
+
+    _node: XdmElement = None  # The node in the xml.dom.minidom referential
+    _children: List["Element"] = field(default_factory=list)  # Child elements
 
     def __post_init__(self):
+        """Populate the child elements list."""
         self._children = DomFactory.create_element_list(self._node.childNodes)
 
+    def get_name(self) -> str:
+        """Get the element's name (tag name)."""
+        return self._node.tagName
+
     def get_attr(self, attr: str) -> str:
+        """Get the value of an attribute."""
         return self._node.getAttribute(attr)
 
-    def get_value(self) -> str:
-        if self._node.hasChildNodes():
-            return self._node.firstChild.nodeValue
-        return "???"
+    def get_value(self) -> str | None:
+        return self._node.firstChild.nodeValue if self._node.hasChildNodes() else None
 
     def get_text(self) -> str:
         """Returns a string with no carriage returns and duplicate spaces."""
-        node_value = self._node.firstChild.nodeValue
-        return re.sub(r"\s+", " ", node_value) if node_value else ""
+        if self._node.hasChildNodes():
+            node_value = self._node.firstChild.nodeValue
+            return re.sub(r"\s+", " ", node_value) if node_value else ""
+        return ""
 
     def get_children(self, tag_name: str = None) -> "ElementList":
-
+        """Get all child elements by tag name (or all if no tag_name is specified)."""
         if tag_name is None:
             return self._children
 
@@ -46,27 +54,26 @@ class Element(XdmElement):
 
         return result
 
-    @property
-    def name(self) -> str:
-        return self._node.tagName
-
 
 @dataclass
 class ElementList:
     _elements: List[Element] = field(default_factory=list)
 
-    @property
-    def size(self):
+    def get_size(self):
+        """Get the number of elements."""
         return len(self._elements)
 
     def add_element(self, element: Element) -> None:
+        """Add an element."""
         if element and isinstance(element, Element):
             self._elements.append(element)
 
     def first(self) -> Element | None:
-        return self._elements[0] if self.size > 0 else None
+        """Get the first element."""
+        return self._elements[0] if self.get_size() > 0 else None
 
     def all(self) -> List[Element]:
+        """Get all elements"""
         return self._elements
 
 
@@ -84,7 +91,7 @@ class Document:
         return None
 
     def get_elements(self, tag_name: str, filter: Dict = {}) -> ElementList | None:
-        """Get elements by attribute."""
+        """Get elements by attribute. This is case sensitive !"""
         if self._root is None:
             return None
 
