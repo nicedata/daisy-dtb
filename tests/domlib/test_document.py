@@ -1,8 +1,6 @@
-import os
-
 from utils import get_test_document
 
-from domlib import Document, DomFactory, Element
+from domlib import Document, Element
 
 document = get_test_document()
 
@@ -10,22 +8,22 @@ document = get_test_document()
 def test_get_element_by_id():
     """Find an element by its id."""
     # Test if Document
-    assert type(document) == Document
+    assert type(document) is Document
 
     # Find elements
     test = document.get_element_by_id("dijn0198")
-    assert test != None
-    assert type(test) == Element
+    assert test is not None
+    assert type(test) is Element
     assert test.name == "h5"
 
     test = document.get_element_by_id("dijn0159")
-    assert test != None
-    assert type(test) == Element
+    assert test is not None
+    assert type(test) is Element
     assert test.name == "h2"
 
     # Find an unfindable element
     test = document.get_element_by_id("unexisting_id")
-    assert test == None
+    assert test is None
 
 
 def test_get_elements():
