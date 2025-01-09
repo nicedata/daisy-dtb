@@ -84,18 +84,15 @@ jobs:
 
       - name: Set project version with uvx
         run: |
-          # poetry version ${{ needs.details.outputs.new_version }}
           uvx --from=toml-cli toml set --toml-path=pyproject.toml project.version ${{ needs.details.outputs.new_version }}
 
       - name: Install dependencies
         run: | 
-          echo "Installing dependencies"
-          # poetry install --sync --no-interaction
+          echo "Installing dependencies in UV"
           uv sync --no-dev
 
       - name: Build source and wheel distribution
         run: |
-          # poetry build
           echo "Building with UV"
           uv build
 
