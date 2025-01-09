@@ -77,9 +77,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install UV
+      - name: Install Poetry
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
+          curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Set project version with Poetry
@@ -91,8 +91,7 @@ jobs:
 
       - name: Build source and wheel distribution
         run: |
-          # poetry build
-          echo "Building with UV"
+          poetry build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
