@@ -128,9 +128,9 @@ class DomFactory:
             data = response.read()
             return Document(_root=parseString(data))
         except HTTPError as e:
-            logger.error(f"HTTP error: {e.code} {e.reason}")
+            logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
         except URLError as e:
-            logger.error(f"URL error: {e.reason}")
+            logger.error(f"URL error: {e.reason} ({url})")
         return None
 
     @staticmethod

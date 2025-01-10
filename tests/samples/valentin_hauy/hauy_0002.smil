@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 1.0//EN" "http://www.w3.org/TR/REC-smil/SMIL10.dtd">
+<smil>
+	<head>
+		<meta name="dc:identifier" content="C1093a"/>
+		<meta name="dc:title" content="Valentin Haüy - the father of the education for the blind"/>
+		<meta name="dc:format" content="Daisy 2.02"/>
+		<meta name="title" content="Summary"/>
+		<meta name="ncc:totalElapsedTime" content="00:00:16"/>
+		<meta name="ncc:timeInThisSmil" content="00:01:39"/>
+		<meta name="ncc:generator" content="Regenerator 0.6.108"/>
+		<layout>
+			<region id="txtView"/>
+		</layout>
+	</head>
+	<body>
+		<seq dur="99.477s">
+			<par endsync="last" id="rgn_par_0002_0001">
+				<text src="valentinhauy.html#rgn_cnt_0005" id="rgn_txt_0002_0001"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=0.000s" clip-end="npt=6.334s" id="rgn_aud_0002_0001"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0002">
+				<text src="valentinhauy.html#rgn_cnt_0006" id="rgn_txt_0002_0002"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=6.334s" clip-end="npt=15.390s" id="rgn_aud_0002_0002"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0003">
+				<text src="valentinhauy.html#rgn_cnt_0007" id="rgn_txt_0002_0003"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=15.390s" clip-end="npt=22.036s" id="rgn_aud_0002_0003"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0004">
+				<text src="valentinhauy.html#rgn_cnt_0008" id="rgn_txt_0002_0004"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=22.036s" clip-end="npt=28.931s" id="rgn_aud_0002_0004"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0005">
+				<text src="valentinhauy.html#rgn_cnt_0009" id="rgn_txt_0002_0005"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=28.931s" clip-end="npt=36.408s" id="rgn_aud_0002_0005"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0006">
+				<text src="valentinhauy.html#rgn_cnt_0010" id="rgn_txt_0002_0006"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=36.408s" clip-end="npt=44.658s" id="rgn_aud_0002_0006"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0007">
+				<text src="valentinhauy.html#rgn_cnt_0011" id="rgn_txt_0002_0007"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=44.658s" clip-end="npt=56.246s" id="rgn_aud_0002_0007"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0008">
+				<text src="valentinhauy.html#rgn_cnt_0012" id="rgn_txt_0002_0008"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=56.246s" clip-end="npt=57.988s" id="rgn_aud_0002_0008"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=57.988s" clip-end="npt=58.780s" id="rgn_aud_0002_0009"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=58.780s" clip-end="npt=60.462s" id="rgn_aud_0002_0010"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=60.462s" clip-end="npt=61.649s" id="rgn_aud_0002_0011"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=61.649s" clip-end="npt=64.566s" id="rgn_aud_0002_0012"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=64.566s" clip-end="npt=66.299s" id="rgn_aud_0002_0013"/>
+					<audio src="hauy_0002.mp3" clip-begin="npt=66.299s" clip-end="npt=68.596s" id="rgn_aud_0002_0014"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0009">
+				<text src="valentinhauy.html#rgn_cnt_0013" id="rgn_txt_0002_0009"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=68.596s" clip-end="npt=76.400s" id="rgn_aud_0002_0015"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0010">
+				<text src="valentinhauy.html#rgn_cnt_0014" id="rgn_txt_0002_0010"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=76.400s" clip-end="npt=87.209s" id="rgn_aud_0002_0016"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0002_0011">
+				<text src="valentinhauy.html#rgn_cnt_0015" id="rgn_txt_0002_0011"/>
+				<seq>
+					<audio src="hauy_0002.mp3" clip-begin="npt=87.209s" clip-end="npt=99.477s" id="rgn_aud_0002_0017"/>
+				</seq>
+			</par>
+		</seq>
+	</body>
+</smil>

@@ -1,7 +1,7 @@
 import os
 from domlib import DomFactory, Document
 
-TEST_FILE_PATH = os.path.join(os.path.dirname(__file__), "test_data.html")
+TEST_FILE_PATH = os.path.join(os.path.dirname(__file__), "../samples/test_data.html")
 
 
 def get_test_string() -> str | None:

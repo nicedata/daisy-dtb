@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 1.0//EN" "http://www.w3.org/TR/REC-smil/SMIL10.dtd">
+<smil>
+	<head>
+		<meta name="dc:identifier" content="C1093a"/>
+		<meta name="dc:title" content="Valentin Haüy - the father of the education for the blind"/>
+		<meta name="dc:format" content="Daisy 2.02"/>
+		<meta name="title" content="References"/>
+		<meta name="ncc:totalElapsedTime" content="02:42:53"/>
+		<meta name="ncc:timeInThisSmil" content="00:00:08"/>
+		<meta name="ncc:generator" content="Regenerator 0.6.108"/>
+		<layout>
+			<region id="txtView"/>
+		</layout>
+	</head>
+	<body>
+		<seq dur="7.786s">
+			<par endsync="last" id="rgn_par_0027_0001">
+				<text src="valentinhauy.html#rgn_cnt_0480" id="rgn_txt_0027_0001"/>
+				<seq>
+					<audio src="hauy_0027.mp3" clip-begin="npt=0.000s" clip-end="npt=1.814s" id="rgn_aud_0027_0001"/>
+					<audio src="hauy_0027.mp3" clip-begin="npt=1.814s" clip-end="npt=6.221s" id="rgn_aud_0027_0002"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0027_0002">
+				<text src="valentinhauy.html#rgn_cnt_0481" id="rgn_txt_0027_0002"/>
+				<seq>
+					<audio src="hauy_0027.mp3" clip-begin="npt=6.221s" clip-end="npt=7.786s" id="rgn_aud_0027_0003"/>
+				</seq>
+			</par>
+		</seq>
+	</body>
+</smil>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 1.0//EN" "http://www.w3.org/TR/REC-smil/SMIL10.dtd">
+<smil>
+	<head>
+		<meta name="dc:identifier" content="C1093a"/>
+		<meta name="dc:title" content="Valentin Haüy - the father of the education for the blind"/>
+		<meta name="dc:format" content="Daisy 2.02"/>
+		<meta name="title" content="Literature"/>
+		<meta name="ncc:totalElapsedTime" content="02:43:00"/>
+		<meta name="ncc:timeInThisSmil" content="00:08:31"/>
+		<meta name="ncc:generator" content="Regenerator 0.6.108"/>
+		<layout>
+			<region id="txtView"/>
+		</layout>
+	</head>
+	<body>
+		<seq dur="510.562s">
+			<par endsync="last" id="rgn_par_0028_0001">
+				<text src="valentinhauy.html#rgn_cnt_0482" id="rgn_txt_0028_0001"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=0.000s" clip-end="npt=1.578s" id="rgn_aud_0028_0001"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0002">
+				<text src="valentinhauy.html#rgn_cnt_0483" id="rgn_txt_0028_0002"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=1.578s" clip-end="npt=46.536s" id="rgn_aud_0028_0002"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0003">
+				<text src="valentinhauy.html#rgn_cnt_0484" id="rgn_txt_0028_0003"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=46.536s" clip-end="npt=71.721s" id="rgn_aud_0028_0003"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0004">
+				<text src="valentinhauy.html#rgn_cnt_0485" id="rgn_txt_0028_0004"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=71.721s" clip-end="npt=91.575s" id="rgn_aud_0028_0004"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0005">
+				<text src="valentinhauy.html#rgn_cnt_0486" id="rgn_txt_0028_0005"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=91.575s" clip-end="npt=119.498s" id="rgn_aud_0028_0005"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0006">
+				<text src="valentinhauy.html#rgn_cnt_0487" id="rgn_txt_0028_0006"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=119.498s" clip-end="npt=151.824s" id="rgn_aud_0028_0006"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0007">
+				<text src="valentinhauy.html#rgn_cnt_0488" id="rgn_txt_0028_0007"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=151.824s" clip-end="npt=216.561s" id="rgn_aud_0028_0007"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0008">
+				<text src="valentinhauy.html#rgn_cnt_0489" id="rgn_txt_0028_0008"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=216.561s" clip-end="npt=251.461s" id="rgn_aud_0028_0008"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0009">
+				<text src="valentinhauy.html#rgn_cnt_0490" id="rgn_txt_0028_0009"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=251.461s" clip-end="npt=263.680s" id="rgn_aud_0028_0009"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0010">
+				<text src="valentinhauy.html#rgn_cnt_0491" id="rgn_txt_0028_0010"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=263.680s" clip-end="npt=285.701s" id="rgn_aud_0028_0010"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0011">
+				<text src="valentinhauy.html#rgn_cnt_0492" id="rgn_txt_0028_0011"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=285.701s" clip-end="npt=307.473s" id="rgn_aud_0028_0011"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0012">
+				<text src="valentinhauy.html#rgn_cnt_0493" id="rgn_txt_0028_0012"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=307.473s" clip-end="npt=338.387s" id="rgn_aud_0028_0012"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0013">
+				<text src="valentinhauy.html#rgn_cnt_0494" id="rgn_txt_0028_0013"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=338.387s" clip-end="npt=368.471s" id="rgn_aud_0028_0013"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0014">
+				<text src="valentinhauy.html#rgn_cnt_0495" id="rgn_txt_0028_0014"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=368.471s" clip-end="npt=378.110s" id="rgn_aud_0028_0014"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0015">
+				<text src="valentinhauy.html#rgn_cnt_0496" id="rgn_txt_0028_0015"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=378.110s" clip-end="npt=398.052s" id="rgn_aud_0028_0015"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0016">
+				<text src="valentinhauy.html#rgn_cnt_0497" id="rgn_txt_0028_0016"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=398.052s" clip-end="npt=399.826s" id="rgn_aud_0028_0016"/>
+					<audio src="hauy_0028.mp3" clip-begin="npt=399.826s" clip-end="npt=402.872s" id="rgn_aud_0028_0017"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0017">
+				<text src="valentinhauy.html#rgn_cnt_0498" id="rgn_txt_0028_0017"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=402.872s" clip-end="npt=413.509s" id="rgn_aud_0028_0018"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0018">
+				<text src="valentinhauy.html#rgn_cnt_0499" id="rgn_txt_0028_0018"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=413.509s" clip-end="npt=425.975s" id="rgn_aud_0028_0019"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0019">
+				<text src="valentinhauy.html#rgn_cnt_0500" id="rgn_txt_0028_0019"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=425.975s" clip-end="npt=445.918s" id="rgn_aud_0028_0020"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0020">
+				<text src="valentinhauy.html#rgn_cnt_0501" id="rgn_txt_0028_0020"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=445.918s" clip-end="npt=456.223s" id="rgn_aud_0028_0021"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0021">
+				<text src="valentinhauy.html#rgn_cnt_0502" id="rgn_txt_0028_0021"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=456.223s" clip-end="npt=468.882s" id="rgn_aud_0028_0022"/>
+				</seq>
+			</par>
+			<par endsync="last" id="rgn_par_0028_0022">
+				<text src="valentinhauy.html#rgn_cnt_0503" id="rgn_txt_0028_0022"/>
+				<seq>
+					<audio src="hauy_0028.mp3" clip-begin="npt=468.882s" clip-end="npt=510.562s" id="rgn_aud_0028_0023"/>
+				</seq>
+			</par>
+		</seq>
+	</body>
+</smil>
