@@ -1,15 +1,32 @@
 import pytest
-import os
-from dtbsource import FileDtbResource, WebDtbResource, DtbResource
 
-SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../samples/valentin_hauy")
-SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
+from dtbsource import DtbResource, FileDtbResource, WebDtbResource
+
+from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, UNEXISTING_URL, UNEXISTING_PATH
 
 
-def test_source():
+def test_source_fail():
     # Should fail (Cannot create abstract class instance)
     with pytest.raises(TypeError):
         DtbResource(resource_base="any")
+
+
+def test_file_source_fail():
+    # Should fail (FileNotFound exception)
+    with pytest.raises(FileNotFoundError):
+        FileDtbResource(resource_base=UNEXISTING_PATH)
+
+
+def test_web_source_fail():
+    # Should fail (FileNotFound exception)
+    with pytest.raises(FileNotFoundError):
+        WebDtbResource(resource_base=UNEXISTING_URL)
+
+
+def test_web_source_success():
+    # Should succeed
+    source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+    assert isinstance(source, WebDtbResource)
 
 
 def test_file_source():
@@ -35,7 +52,7 @@ def test_file_source():
 def test_web_source():
     source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
 
-    # Get a string - should work
+    # Get a string - should work (convert_to_str defaults to True)
     data = source.get("ncc.html")
     assert isinstance(data, str)
 

@@ -16,4 +16,10 @@
     "python.testing.cwd": "${workspaceFolder}/tests",
     "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    // Hide some folders to ui
+    "files.exclude": {
+        "**/.pytest_cache": true,
+        "**/.coverage": true,
+        "**/*.egg-info": true,
+    }
 }

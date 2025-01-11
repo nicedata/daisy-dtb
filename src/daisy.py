@@ -7,6 +7,7 @@ from typing import List
 from loguru import logger
 
 from domlib import DomFactory
+from dtbsource import DtbResource
 
 
 @dataclass
@@ -28,6 +29,13 @@ class NccEntry:
     fragment: str
     text: str
     children: List["Smil"] = field(default_factory=list)
+
+
+@dataclass
+class Ncc:
+    """Representation of an NCC file"""
+
+    source: DtbResource
 
 
 @dataclass

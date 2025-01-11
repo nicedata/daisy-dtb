@@ -1,5 +1,6 @@
 from domlib import Document, DomFactory
-from utils import get_test_string
+
+from domlib_test_context import get_test_string
 
 
 def test_create_document_from_url():

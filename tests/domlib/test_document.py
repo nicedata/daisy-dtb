@@ -1,6 +1,6 @@
-from utils import get_test_document
-
 from domlib import Document, Element
+
+from domlib_test_context import get_test_document
 
 document = get_test_document()
 
