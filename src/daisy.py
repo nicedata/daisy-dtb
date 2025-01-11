@@ -34,19 +34,60 @@ class NccEntry:
     id: str
     level: int
     smil_reference: SmilReference
-    # smil_file: str
-    # smil_fragment: str
     text: str
     children: List["Smil"] = field(default_factory=list)
 
 
 @dataclass
-class Ncc:
+class NewSmil:
+    """This class represents a SMIL file."""
+
+    source: DtbResource
+    reference: SmilReference
+    title: str = ""
+    total_duration: float = 0.0
+    is_loaded: bool = False
+
+    def __post_init__(self): ...
+
+    def load(self) -> None:
+        """Load a the SMIL file (if not already loaded)."""
+        if self.is_loaded:
+            return
+
+        # Get the resource data
+        data = self.source.get(self.reference.resource)
+        if data is None:
+            return
+
+        # Prepare a document
+        document = DomFactory.create_document_from_string(data)
+
+        # Title
+        elt = document.get_elements("meta", {"name": "dc:title"}).first()
+        if elt:
+            self.title = elt.get_attr("content")
+
+        # Total duration
+        elt = document.get_elements("meta", {"name": "ncc:timeInThisSmil"}).first()
+        if elt:
+            duration = elt.get_attr("content")
+            h, m, s = duration.split(":")
+            self.total_duration = float(h) * 3600 + float(m) * 60 + float(s)
+
+        self.is_loaded = True
+        print(self)
+
+
+@dataclass
+class Dtb:
     """Representation of an NCC file"""
 
     source: DtbResource
     metadata: List[MetaData] = field(default_factory=list)
     entries: List[NccEntry] = field(default_factory=list)
+    smils: List[NewSmil] = field(default_factory=list)
+    is_valid: bool = False
 
     def __post_init__(self):
         # Get the ncc.html file content
@@ -62,8 +103,10 @@ class Ncc:
         # Populate the entries list
         self._populate_entries(data)
 
-        print("M", len(self.metadata))
-        print("N", len(self.entries))
+        # Populate the smils list
+        self._populate_smils()
+
+        self.is_valid = True
 
     def _populate_metadata(self, data: str) -> None:
         """Process and store all metadata."""
@@ -84,6 +127,16 @@ class Ncc:
                 smil_resource, smil_fragment = a.get_attr("href").split("#")
                 smil_reference = SmilReference(smil_resource, smil_fragment)
                 self.entries.append(NccEntry(id, level, smil_reference, a.get_text()))
+
+    def _populate_smils(self):
+        for entry in self.entries:
+            smil = NewSmil(self.source, entry.smil_reference)
+            self.smils.append(smil)
+
+    def get_title(self) -> str:
+        for meta in self.metadata:
+            if meta.name == "dc:title":
+                return meta.content
 
 
 @dataclass

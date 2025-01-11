@@ -69,13 +69,10 @@ class WebDtbResource(DtbResource):
         try:
             urllib.request.urlopen(self.resource_base)
         except HTTPError as e:
-            error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error
-            print("E0", self.resource_base, error)
+            error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
         except URLError:
             error = True
-            print("E1", self.resource_base, error)
 
-        print("E", self.resource_base, error)
         if error:
             raise FileNotFoundError
 
