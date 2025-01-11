@@ -20,13 +20,22 @@ class MetaData:
 
 
 @dataclass
+class SmilReference:
+    """This class represents a reference to a SMIL file."""
+
+    resource: str
+    fragment: str
+
+
+@dataclass
 class NccEntry:
     """Representation of an entry in the NCC file."""
 
     id: str
     level: int
-    smil_file: str
-    fragment: str
+    smil_reference: SmilReference
+    # smil_file: str
+    # smil_fragment: str
     text: str
     children: List["Smil"] = field(default_factory=list)
 
@@ -36,6 +45,45 @@ class Ncc:
     """Representation of an NCC file"""
 
     source: DtbResource
+    metadata: List[MetaData] = field(default_factory=list)
+    entries: List[NccEntry] = field(default_factory=list)
+
+    def __post_init__(self):
+        # Get the ncc.html file content
+        data = self.source.get("ncc.html")
+
+        # No data, no further processing !
+        if data is None:
+            return
+
+        # Populate the metadata list
+        self._populate_metadata(data)
+
+        # Populate the entries list
+        self._populate_entries(data)
+
+        print("M", len(self.metadata))
+        print("N", len(self.entries))
+
+    def _populate_metadata(self, data: str) -> None:
+        """Process and store all metadata."""
+        for element in DomFactory.create_document_from_string(data).get_elements("meta").all():
+            name = element.get_attr("name")
+            if name:
+                self.metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
+
+    def _populate_entries(self, data: str):
+        """Process and store the NCC entries (hx tags)."""
+        body = DomFactory.create_document_from_string(data).get_elements("body").first()
+        for element in body.get_children().all():
+            element_name = element.get_name()
+            if element_name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                level = int(element_name[1])
+                id = element.get_attr("id")
+                a = element.get_children("a").first()
+                smil_resource, smil_fragment = a.get_attr("href").split("#")
+                smil_reference = SmilReference(smil_resource, smil_fragment)
+                self.entries.append(NccEntry(id, level, smil_reference, a.get_text()))
 
 
 @dataclass

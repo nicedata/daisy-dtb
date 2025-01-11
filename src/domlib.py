@@ -48,8 +48,9 @@ class Element:
             return self._children
 
         result = ElementList()
+        child: Element
         for child in self._children.all():
-            if child.name == tag_name:
+            if child.get_name() == tag_name:
                 result._elements.append(child)
 
         return result
