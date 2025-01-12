@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from loguru import logger
 
@@ -31,14 +32,15 @@ def test(source: DtbResource):
 def main():
     """Perform tests !"""
     paths = [SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL]
-    sources = [None, None]
+    paths = [SAMPLE_DTB_PROJECT_PATH]
+    sources: List[DtbResource] = []
 
-    for index, path in enumerate(paths):
+    for path in paths:
         try:
             if path.startswith("http"):
-                sources[index] = WebDtbResource(path)
+                sources.append(WebDtbResource(path))
             else:
-                sources[index] = FileDtbResource(path)
+                sources.append(FileDtbResource(path))
         except FileNotFoundError:
             logger.critical(f"Source {path} not found.")
             return

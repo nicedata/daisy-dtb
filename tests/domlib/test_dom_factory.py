@@ -1,6 +1,6 @@
 from domlib import Document, DomFactory
 
-from domlib_test_context import get_test_string
+from domlib_test_context import get_ncc_string
 
 
 def test_create_document_from_url():
@@ -30,7 +30,7 @@ def test_create_document_from_url():
 
 def test_create_document_from_string():
     # This should be OK
-    string = get_test_string()
+    string = get_ncc_string()
     document = DomFactory.create_document_from_string(string)
     assert type(document) is Document
 

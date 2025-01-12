@@ -91,18 +91,42 @@ class Document:
                 return Element(_node=elt)
         return None
 
-    def get_elements(self, tag_name: str, filter: Dict = {}) -> ElementList | None:
-        """Get elements by attribute. This is case sensitive !"""
+    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, parent_tag_name: str = None) -> ElementList | None:
+        """
+        Get elements by tag name.
+
+        A filter on attributes can be specified. The form is `{"attribute_name": "attribute_value"}`.
+
+        Since xml.minidom does a recursive search, a parent tag name can be specified to filter out unwanted elements.
+
+        Args:
+            tag_name (str): the seaerched tag name
+            filter (Dict, optional): the attribute filter. Defaults to {}.
+            parent_tag_name (str, optional): the parent tag name filter. Defaults to None.
+
+        Returns:
+            ElementList | None: the searched element (or None).
+        """
         if self._root is None:
             return None
+        logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {parent_tag_name}")
+        nodes = self._root.getElementsByTagName(tag_name)
+
+        node_list = []
+        if parent_tag_name:
+            for element in nodes:
+                if element.parentNode.tagName == parent_tag_name:
+                    node_list.append(element)
+        else:
+            node_list = nodes
 
         # No filter : get all elements
         if len(filter.items()) == 0:
-            return DomFactory.create_element_list(self._root.getElementsByTagName(tag_name))
+            return DomFactory.create_element_list(node_list)
 
         # With filtering
         result = ElementList()
-        for elt in self._root.getElementsByTagName(tag_name):
+        for elt in node_list:
             for k, v in filter.items():
                 attr = elt.getAttribute(k)
                 if attr == v:
@@ -115,6 +139,13 @@ class DomFactory:
 
     @staticmethod
     def create_document_from_string(string: str) -> Document | None:
+        """Create a Document from a string.
+        Args:
+            string (str): The string to parse
+
+        Returns:
+            Document | None: a Document or None
+        """
         try:
             xdm_document = parseString(string)
         except ExpatError as e:
@@ -124,6 +155,13 @@ class DomFactory:
 
     @staticmethod
     def create_document_from_url(url: str) -> Document | None:
+        """Create a Document from an URL.
+        Args:
+            url (str): The URL to parse
+
+        Returns:
+            Document | None: a Document or None
+        """
         try:
             response = urllib.request.urlopen(url)
             data = response.read()
@@ -136,6 +174,14 @@ class DomFactory:
 
     @staticmethod
     def create_element_list(nodes: List[XdmElement]) -> ElementList:
+        """Create an Element list from a list of xml.minidom nodes.
+
+        Args:
+            nodes (List[XdmElement]): The xml.minidom element list
+
+        Returns:
+            ElementList: a list of Element
+        """
         result = ElementList()
         for node in nodes:
             if isinstance(node, XdmElement):

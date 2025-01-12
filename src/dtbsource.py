@@ -77,7 +77,6 @@ class WebDtbResource(DtbResource):
             raise FileNotFoundError
 
     def get(self, resource_name: str, convert_to_str: bool = True) -> bytes | str | None:
-        """Get the resource and return it as string"""
         url = f"{self.resource_base}{resource_name}"
         try:
             response = urllib.request.urlopen(url)

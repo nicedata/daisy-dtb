@@ -21,14 +21,14 @@ class DaisyBook:
 
     def _process_meta(self, data: str) -> None:
         """Process and store all metadata."""
-        for element in DomFactory.create_document_from_string(data).get_elements("meta").all():
+        for element in DomFactory.create_document_from_string(data).get_elements_by_tag_name("meta").all():
             name = element.get_attr("name")
             if name:
                 self.metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
 
     def _process_headers(self, data: str):
         """Process and store the NCC entries (hx tags)."""
-        body = DomFactory.create_document_from_string(data).get_elements("body").first()
+        body = DomFactory.create_document_from_string(data).get_elements_by_tag_name("body").first()
         for el in body.get_children().all():
             if el.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
                 level = int(el.name[1])
@@ -74,7 +74,7 @@ class DaisyBook:
         document = DomFactory.create_document_from_string(data)
 
         # Project title
-        self.title = document.get_elements("title").first()
+        self.title = document.get_elements_by_tag_name("title").first()
 
         # Project Metadata
         self._process_meta(data)
