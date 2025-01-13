@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 
 from daisy import Dtb
-from dtbsource import DtbResource, FileDtbResource, WebDtbResource
+from dtbsource import DtbResource, FolderDtbResource
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
@@ -38,9 +38,9 @@ def main():
     for path in paths:
         try:
             if path.startswith("http"):
-                sources.append(WebDtbResource(path))
+                sources.append(FolderDtbResource(path))
             else:
-                sources.append(FileDtbResource(path))
+                sources.append(FolderDtbResource(path))
         except FileNotFoundError:
             logger.critical(f"Source {path} not found.")
             return

@@ -1,7 +1,7 @@
 import pytest
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
-from dtbsource import DtbResource, FileDtbResource, WebDtbResource, ZipDtbResource
+from dtbsource import DtbResource, ZipDtbResource, FolderDtbResource
 
 
 def test_source_fail():
@@ -13,23 +13,23 @@ def test_source_fail():
 def test_file_source_fail():
     # Should fail (FileNotFound exception)
     with pytest.raises(FileNotFoundError):
-        FileDtbResource(resource_base=UNEXISTING_PATH)
+        FolderDtbResource(resource_base=UNEXISTING_PATH)
 
 
 def test_web_source_fail():
     # Should fail (FileNotFound exception)
     with pytest.raises(FileNotFoundError):
-        WebDtbResource(resource_base=UNEXISTING_URL)
+        FolderDtbResource(resource_base=UNEXISTING_URL)
 
 
 def test_web_source_success():
     # Should succeed
-    source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
-    assert isinstance(source, WebDtbResource)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+    assert isinstance(source, FolderDtbResource)
 
 
 def test_file_source():
-    source = FileDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
 
     # Get a string - should work
     data = source.get("ncc.html")
@@ -45,7 +45,7 @@ def test_file_source():
 
 
 def test_web_source():
-    source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
 
     # Get a string - should work
     data = source.get("ncc.html")

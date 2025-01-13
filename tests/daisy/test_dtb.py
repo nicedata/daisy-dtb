@@ -3,16 +3,16 @@
 from daisy_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
 from daisy import Dtb
-from dtbsource import FileDtbResource, WebDtbResource
+from dtbsource import FolderDtbResource
 
 
 def test_ncc_load_from_filesystem():
     try:
-        source = FileDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
+        source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
     except FileNotFoundError:
         return
 
-    assert isinstance(source, FileDtbResource)
+    assert isinstance(source, FolderDtbResource)
 
     dtb = Dtb(source)
     assert isinstance(dtb, Dtb)
@@ -28,11 +28,11 @@ def test_ncc_load_from_filesystem():
 
 def test_ncc_load_from_web():
     try:
-        source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+        source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
     except FileNotFoundError:
         return
 
-    assert isinstance(source, WebDtbResource)
+    assert isinstance(source, FolderDtbResource)
 
     dtb = Dtb(source)
     assert isinstance(dtb, Dtb)

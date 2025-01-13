@@ -40,59 +40,111 @@ class DtbResource(ABC):
         """
 
 
-class FileDtbResource(DtbResource):
-    """This class gets data from the file system"""
+# class FileDtbResource(DtbResource):
+#     """This class gets data from the file system"""
+
+#     def __init__(self, resource_base) -> None:
+#         super().__init__(resource_base)
+#         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
+
+#         if not Path(self.resource_base).exists():
+#             raise FileNotFoundError
+
+#     def get(self, resource_name: str) -> bytes | str | None:
+#         path = Path(f"{self.resource_base}{resource_name}")
+#         try:
+#             with open(path, "rb") as resource:
+#                 data: bytes = resource.read()
+#         except FileNotFoundError as e:
+#             logger.error(f"Error: {e.strerror} ({path})")
+#             return None
+
+#         try:
+#             return data.decode("utf-8")
+#         except UnicodeDecodeError:
+#             return data
+
+
+# class WebDtbResource(DtbResource):
+#     """This class gets data from the web"""
+
+#     def __init__(self, resource_base) -> None:
+#         super().__init__(resource_base)
+#         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
+#         error = False
+#         try:
+#             urllib.request.urlopen(self.resource_base)
+#         except HTTPError as e:
+#             error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
+#         except URLError:
+#             error = True
+
+#         if error:
+#             raise FileNotFoundError
+
+#     def get(self, resource_name: str) -> bytes | str | None:
+#         url = f"{self.resource_base}{resource_name}"
+#         try:
+#             response = urllib.request.urlopen(url)
+#             data: bytes = response.read()
+#         except HTTPError as e:
+#             logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
+#             return None
+#         except URLError as e:
+#             logger.error(f"URL error: {e.reason} ({url})")
+#             return None
+
+#         try:
+#             return data.decode("utf-8")
+#         except UnicodeDecodeError:
+#             return data
+
+
+class FolderDtbResource(DtbResource):
+    """This class gets data from a filesystem folder or a web location"""
 
     def __init__(self, resource_base) -> None:
         super().__init__(resource_base)
         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
-
-        if not Path(self.resource_base).exists():
-            raise FileNotFoundError
-
-    def get(self, resource_name: str) -> bytes | str | None:
-        path = Path(f"{self.resource_base}{resource_name}")
-        try:
-            with open(path, "rb") as resource:
-                data: bytes = resource.read()
-        except FileNotFoundError as e:
-            logger.error(f"Error: {e.strerror} ({path})")
-            return None
-
-        try:
-            return data.decode("utf-8")
-        except UnicodeDecodeError:
-            return data
-
-
-class WebDtbResource(DtbResource):
-    """This class gets data from the web"""
-
-    def __init__(self, resource_base) -> None:
-        super().__init__(resource_base)
-        self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
+        self.is_web_resource: bool = "://" in self.resource_base
         error = False
-        try:
-            urllib.request.urlopen(self.resource_base)
-        except HTTPError as e:
-            error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
-        except URLError:
-            error = True
+
+        if self.is_web_resource:
+            try:
+                urllib.request.urlopen(self.resource_base)
+            except HTTPError as e:
+                error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
+            except URLError:
+                error = True
+        else:
+            if not Path(self.resource_base).exists():
+                error = True
 
         if error:
             raise FileNotFoundError
 
     def get(self, resource_name: str) -> bytes | str | None:
-        url = f"{self.resource_base}{resource_name}"
-        try:
-            response = urllib.request.urlopen(url)
-            data: bytes = response.read()
-        except HTTPError as e:
-            logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
-            return None
-        except URLError as e:
-            logger.error(f"URL error: {e.reason} ({url})")
-            return None
+        path = f"{self.resource_base}{resource_name}"
+
+        if self.is_web_resource:
+            # Get the data from the web
+            try:
+                response = urllib.request.urlopen(path)
+                data: bytes = response.read()
+            except HTTPError as e:
+                logger.error(f"HTTP error: {e.code} {e.reason} ({path})")
+                return None
+            except URLError as e:
+                logger.error(f"URL error: {e.reason} ({path})")
+                return None
+        else:
+            # Get the data from the filesystem
+            try:
+                with open(path, "rb") as resource:
+                    data: bytes = resource.read()
+            except FileNotFoundError as e:
+                logger.error(f"Error: {e.strerror} ({path})")
+                return None
 
         try:
             return data.decode("utf-8")
@@ -101,7 +153,7 @@ class WebDtbResource(DtbResource):
 
 
 class ZipDtbResource(DtbResource):
-    """This class gets data from a ZIP archive"""
+    """This class gets data from a ZIP archive (from the filesystem or a web location)."""
 
     def __init__(self, resource_base) -> None:
         super().__init__(resource_base)
