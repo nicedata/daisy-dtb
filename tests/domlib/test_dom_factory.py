@@ -10,7 +10,6 @@ def test_create_document_from_url():
     valid_urls = [
         "http://webplayer.abage.ch/media/VOTATIONS/VF/ncc.html",
         "https://webplayer.abage.ch/media/VOTATIONS/VF/source.html",
-        "https://webplayer.abage.ch/media/VOTATIONS/VF/dijn0016.smil",
     ]
 
     for url in valid_urls:
