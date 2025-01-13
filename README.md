@@ -1,5 +1,9 @@
 # A library to deal with Daisy 2.02 digital talking books
 
+## Warning
+
+**This package (also published to PyPi) is still under active development (alpha stage).**
+
 ## Installation
 
 You can install `daisy-dtb` with all common python dependancies manager.
