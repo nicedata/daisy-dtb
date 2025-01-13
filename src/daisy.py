@@ -201,8 +201,7 @@ class NewSmil:
                 text = par.get_children("text").first()
                 id = text.get_attr("id")
                 src, frag = text.get_attr("src").split("#")
-                ref = Reference(src, frag)
-                t = Text(id, ref)
+                t = Text(id, Reference(src, frag), text.get_value())
                 print(t)
 
                 # TODO: Handle the <audio/>

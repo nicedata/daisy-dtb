@@ -7,6 +7,18 @@ You can install `daisy-dtb` with all common python dependancies manager.
 * With pip : ```pip install daisy-dtb```
 * With uv : ```uv add daisy-dtb```
 
+## Data sources
+
+A Daisy 2.03 digital talking book (DTB) can be available in multiple forms :
+
+- in a filesystem folder
+- on a website
+- in a ZIP archive (from a filesystem folder or a website)
+
+The base class representing this is `DtbResource`
+
+
+
 
 ## References
 

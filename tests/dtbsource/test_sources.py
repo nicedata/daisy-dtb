@@ -1,8 +1,7 @@
 import pytest
+from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
-from dtbsource import DtbResource, FileDtbResource, WebDtbResource
-
-from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, UNEXISTING_URL, UNEXISTING_PATH
+from dtbsource import DtbResource, FileDtbResource, WebDtbResource, ZipDtbResource
 
 
 def test_source_fail():
@@ -33,15 +32,11 @@ def test_file_source():
     source = FileDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
 
     # Get a string - should work
-    data = source.get("ncc.html", convert_to_str=True)
-    assert isinstance(data, str)
-
-    # Get a string - should work too (convert_to_str defaults to True)
     data = source.get("ncc.html")
     assert isinstance(data, str)
 
     # Get a byte array
-    data = source.get("hauy_0002.mp3", convert_to_str=False)
+    data = source.get("hauy_0002.mp3")
     assert isinstance(data, bytes)
 
     # Should fail
@@ -52,14 +47,48 @@ def test_file_source():
 def test_web_source():
     source = WebDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
 
-    # Get a string - should work (convert_to_str defaults to True)
+    # Get a string - should work
     data = source.get("ncc.html")
     assert isinstance(data, str)
 
     # Get a byte array
-    data = source.get("04_Mission_et_valeurs.mp3", convert_to_str=False)
+    data = source.get("04_Mission_et_valeurs.mp3")
     assert isinstance(data, bytes)
 
     # Get a string - should fail
     data = source.get("dummy.html")
     assert data is None
+
+
+def test_zip_source_fail():
+    # Should fail (FileNotFound exception)
+    with pytest.raises(FileNotFoundError):
+        ZipDtbResource(resource_base=UNEXISTING_ZIP)
+
+    with pytest.raises(FileNotFoundError):
+        ZipDtbResource(resource_base=UNEXISTING_URL)
+
+
+def test_zip_source():
+    # Tests with an existing filesystem archive
+    source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_PATH)
+
+    data = source.get("ncc.html")
+    assert isinstance(data, str)
+
+    data = source.get("13_Verrine_de_tiramisu_sal__au.mp3")
+    assert isinstance(data, bytes)
+
+    # This fails !
+    assert source.get("unexisting.file") is None
+
+    # Tests with an existing web archive
+    source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_URL)
+
+    data = source.get("stnz0037.smil")
+    assert isinstance(data, str)
+
+    data = source.get("13_Verrine_de_tiramisu_sal__au.mp3")
+    assert isinstance(data, bytes)
+
+    assert source.get("unexisting.file") is None
