@@ -100,7 +100,7 @@ if data is not None:
 ## Project files
 
 - `dtbsource.py` : implementation of the  `DtbResource`, `FolderDtbResource` and `ZipDtbResource` classes
-- `domlib.py` : Classes to encapsulate and simplify the usage of the xml.dom.minidom library
+- `domlib.py` : classes to encapsulate and simplify the usage of the `xml.dom.minidom` library
 
 ## Dependencies
 

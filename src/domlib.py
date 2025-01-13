@@ -91,7 +91,7 @@ class Document:
                 return Element(_node=elt)
         return None
 
-    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, parent_tag_name: str = None) -> ElementList | None:
+    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, having_parent_tag_name: str = None) -> ElementList | None:
         """
         Get elements by tag name.
 
@@ -102,20 +102,20 @@ class Document:
         Args:
             tag_name (str): the seaerched tag name
             filter (Dict, optional): the attribute filter. Defaults to {}.
-            parent_tag_name (str, optional): the parent tag name filter. Defaults to None.
+            having_parent_tag_name (str, optional): the parent tag name filter. Defaults to None.
 
         Returns:
             ElementList | None: the searched element (or None).
         """
         if self._root is None:
             return None
-        logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {parent_tag_name}")
+        logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {having_parent_tag_name}")
         nodes = self._root.getElementsByTagName(tag_name)
 
         node_list = []
-        if parent_tag_name:
+        if having_parent_tag_name:
             for element in nodes:
-                if element.parentNode.tagName == parent_tag_name:
+                if element.parentNode.tagName == having_parent_tag_name:
                     node_list.append(element)
         else:
             node_list = nodes

@@ -70,5 +70,5 @@ def test_get_children():
         assert element.get_children("a").get_size() == 1
 
     # Test get_children in an smil document
-    elements = smil_document.get_elements_by_tag_name("seq", parent_tag_name="body").all()
+    elements = smil_document.get_elements_by_tag_name("seq", having_parent_tag_name="body").all()
     assert len(elements) == 1

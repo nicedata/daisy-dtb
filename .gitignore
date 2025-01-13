@@ -9,7 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
-# UV stuff
+# Other stuff
 uv.lock
 .coverage
+
+**/src/temp*.*
 

@@ -1,7 +1,6 @@
 """Daisy library"""
 
-from dataclasses import InitVar, dataclass, field
-from pathlib import Path
+from dataclasses import dataclass, field
 from typing import List
 
 from loguru import logger
@@ -35,7 +34,7 @@ class NccEntry:
     level: int
     smil_reference: Reference
     text: str
-    children: List["Smil"] = field(default_factory=list)
+    children: List["NewSmil"] = field(default_factory=list)
 
 
 @dataclass
@@ -45,38 +44,6 @@ class Text:
     id: str
     reference: Reference
     content: str = ""
-
-
-@dataclass
-class Clip:
-    """Representation of an audio clip."""
-
-    parent: "Par"
-    id: str
-    source_file: str
-    begin: float
-    end: float
-
-    @property
-    def duration(self):
-        return self.end - self.begin
-
-
-@dataclass
-class Par:
-    """Representation of a <par/> section in as SMIL file."""
-
-    id: str
-    text: Text = None
-    clips: List[Clip] = field(default_factory=list)
-
-
-@dataclass
-class Parallel:
-    """
-    Representation of a <par/> section in as SMIL file.
-    Objects inside the <par> element will be played at the same time (in parallel).
-    """
 
 
 @dataclass
@@ -105,51 +72,15 @@ class Audio:
 
 
 @dataclass
-class Smil:
-    """Representation of a SMIL file."""
+class Parallel:
+    """
+    Representation of a <par/> section in as SMIL file.
+    Objects inside the <par> element will be played at the same time (in parallel).
+    """
 
-    smil_path: InitVar[Path]
-    parent: InitVar[NccEntry]
-    title: str = ""
-    duration: float = 0.0
-    pars: List[Par] = field(default_factory=list, init=False)
-
-    def __post_init__(self, smil_path: Path, parent: NccEntry):
-        logger.debug(f"Processing SMIL {smil_path}")
-        try:
-            with open(smil_path) as smil:
-                data = smil.read()
-                document = DomFactory.create_document_from_string(data)
-        except FileNotFoundError:
-            logger.critical(f"File not found : {smil_path}.")
-            exit()
-
-        # SMIL title
-        elt = document.get_elements_by_tag_name("meta", {"name": "title"}).first()
-        if elt:
-            self.title = elt.get_attr("content")
-
-        # SMIL duration
-        elt = document.get_elements_by_tag_name("seq").first()
-        if elt:
-            self.duration = float(elt.get_attr("dur")[:-1])
-
-        # Process all <par/> elements
-        for elt in document.get_elements_by_tag_name("par").all():
-            smil_par = Par(elt.get_attr("id"))
-
-            # Get the <text/> element
-            text_elt = elt.get_children("text").first()
-            text_file, fragment = text_elt.get_attr("src").split("#")
-            smil_par.text = Text(text_elt.get_attr("id"), text_file, fragment)
-
-            for seq_elt in elt.get_children("seq").all():
-                for audio_elt in seq_elt.get_children("audio").all():
-                    smil_par.clips.append(Clip(smil_par, audio_elt.get_attr("id"), audio_elt.get_attr("src"), float(audio_elt.get_attr("clip-begin")[4:-1]), float(audio_elt.get_attr("clip-end")[4:-1])))
-
-            self.pars.append(smil_par)
-
-        parent.children.append(self)
+    id: str
+    text: Text
+    clips: List[Audio] = field(default_factory=list)
 
 
 @dataclass
@@ -160,6 +91,8 @@ class NewSmil:
     reference: Reference
     title: str = ""
     total_duration: float = 0.0
+    pars: List[Parallel] = field(default_factory=list)
+
     is_loaded: bool = False
 
     def __post_init__(self): ...
@@ -178,6 +111,9 @@ class NewSmil:
 
         # Prepare a document
         document = DomFactory.create_document_from_string(data)
+        if document is None:
+            logger.debug(f"Could not create a document from {self.reference.resource}.")
+            return
 
         # Title
         elt = document.get_elements_by_tag_name("meta", {"name": "dc:title"}).first()
@@ -194,17 +130,19 @@ class NewSmil:
             logger.debug(f"SMIL {self.reference.resource} duration set : {self.total_duration}s.")
 
         # Process sequences in body
-        for body_seq in document.get_elements_by_tag_name("seq", parent_tag_name="body").all():
+        for body_seq in document.get_elements_by_tag_name("seq", having_parent_tag_name="body").all():
             # Process the <par/> element in the sequence
             for par in body_seq.get_children("par").all():
-                # TODO: Handle the <text/>
+                par_id = par.get_attr("id")
+
+                # Handle the <text/>
                 text = par.get_children("text").first()
                 id = text.get_attr("id")
                 src, frag = text.get_attr("src").split("#")
-                t = Text(id, Reference(src, frag), text.get_value())
-                print(t)
+                current_text = Text(id, Reference(src, frag), text.get_value())
+                current_par = Parallel(par_id, current_text)
 
-                # TODO: Handle the <audio/>
+                # Handle the <audio/> clip
                 for par_seq in par.get_children("seq").all():
                     audios = par_seq.get_children("audio").all()
                     for audio in audios:
@@ -212,19 +150,20 @@ class NewSmil:
                         source = audio.get_attr("src")
                         begin = float(audio.get_attr("clip-begin")[4:-1])
                         end = float(audio.get_attr("clip-end")[4:-1])
-                        au = Audio(id, source, begin, end)
-                        print(au)
+                        current_par.clips.append(Audio(id, source, begin, end))
+                    logger.debug(f"SMIL {self.reference.resource}, par: {current_par.id} contains {len(current_par.clips)} audio clip(s).")
 
-                # print(text)
-                # print(audios)
+                # Add to the list of Parallel
+                self.pars.append(current_par)
 
         self.is_loaded = True
+        logger.debug(f"SMIL {self.reference.resource} contains {len(self.pars)} pars.")
         logger.debug(f"SMIL {self.reference.resource} sucessfully loaded.")
 
 
 @dataclass
-class Dtb:
-    """Representation of an NCC file"""
+class DaisyDtb:
+    """Representation of a Daisy 2.03 Digital Talking Book file"""
 
     source: DtbResource
     metadata: List[MetaData] = field(default_factory=list)
@@ -240,11 +179,11 @@ class Dtb:
         if data is None:
             return
 
-        # Populate the metadata list
-        self._populate_metadata(data)
-
         # Populate the entries list
         self._populate_entries(data)
+
+        # Populate the metadata list
+        self._populate_metadata(data)
 
         # Populate the smils list
         self._populate_smils()
@@ -267,8 +206,8 @@ class Dtb:
                 level = int(element_name[1])
                 id = element.get_attr("id")
                 a = element.get_children("a").first()
-                smil_resource, smil_fragment = a.get_attr("href").split("#")
-                smil_reference = Reference(smil_resource, smil_fragment)
+                src, frag = a.get_attr("href").split("#")
+                smil_reference = Reference(src, frag)
                 self.entries.append(NccEntry(id, level, smil_reference, a.get_text()))
 
     def _populate_smils(self):
@@ -280,3 +219,10 @@ class Dtb:
         for meta in self.metadata:
             if meta.name == "dc:title":
                 return meta.content
+        return ""
+
+    def get_depth(self) -> int:
+        for meta in self.metadata:
+            if meta.name == "ncc:depth":
+                return int(meta.content)
+        return 0

@@ -2,7 +2,7 @@
 
 from daisy_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
-from daisy import Dtb
+from daisy import DaisyDtb
 from dtbsource import FolderDtbResource
 
 
@@ -14,8 +14,8 @@ def test_ncc_load_from_filesystem():
 
     assert isinstance(source, FolderDtbResource)
 
-    dtb = Dtb(source)
-    assert isinstance(dtb, Dtb)
+    dtb = DaisyDtb(source)
+    assert isinstance(dtb, DaisyDtb)
     assert dtb.is_valid is True
     assert len(dtb.metadata) == 30
     assert len(dtb.entries) == 30
@@ -34,8 +34,8 @@ def test_ncc_load_from_web():
 
     assert isinstance(source, FolderDtbResource)
 
-    dtb = Dtb(source)
-    assert isinstance(dtb, Dtb)
+    dtb = DaisyDtb(source)
+    assert isinstance(dtb, DaisyDtb)
     assert dtb.is_valid is True
     assert len(dtb.metadata) == 32
     assert len(dtb.entries) == 87
