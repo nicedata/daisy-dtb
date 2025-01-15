@@ -30,11 +30,24 @@ class Reference:
 class NccEntry:
     """Representation of an entry in the NCC file."""
 
+    source: DtbResource
     id: str
     level: int
     smil_reference: Reference
     text: str
-    children: List["NewSmil"] = field(default_factory=list)
+    _smil: "NewSmil" = None
+
+    @property
+    def smil(self) -> "NewSmil":
+        """Get the attached smil. Load it if needed.
+
+        Returns:
+            NewSmil: The attached smil.
+        """
+        if self._smil is None:
+            self._smil = NewSmil(self.source, self.smil_reference)
+            logger.debug(f"Smil set from {self.smil_reference}")
+        return self._smil
 
 
 @dataclass
@@ -61,14 +74,25 @@ class Audio:
     Defines an audio clip.
     """
 
+    source: DtbResource
     id: str
-    source: str
+    src: str
     begin: float
     end: float
 
-    def get_duration(self) -> float:
+    # Internal attributes (dynamically populated)
+    _buffer: bytes = None
+
+    @property
+    def duration(self) -> float:
         """Get the duration of a clip, in seconds."""
         return self.end - self.begin
+
+    @property
+    def data(self) -> bytes:
+        if self._buffer is None:
+            self._buffer = self.source.get(self.src)
+        return self._buffer
 
 
 @dataclass
@@ -91,15 +115,22 @@ class NewSmil:
     reference: Reference
     title: str = ""
     total_duration: float = 0.0
-    pars: List[Parallel] = field(default_factory=list)
 
-    is_loaded: bool = False
+    # Internal attributes (dynamically populated)
+    _pars: List[Parallel] = field(default_factory=list)
+    _is_loaded: bool = False
 
     def __post_init__(self): ...
 
+    @property
+    def pars(self):
+        if not self._is_loaded:
+            self.load()
+        return self._pars
+
     def load(self) -> None:
         """Load a the SMIL file (if not already loaded)."""
-        if self.is_loaded:
+        if self._is_loaded:
             logger.debug(f"SMIL {self.reference.resource} is already loaded.")
             return
 
@@ -147,17 +178,17 @@ class NewSmil:
                     audios = par_seq.get_children("audio").all()
                     for audio in audios:
                         id = audio.get_attr("id")
-                        source = audio.get_attr("src")
+                        src = audio.get_attr("src")
                         begin = float(audio.get_attr("clip-begin")[4:-1])
                         end = float(audio.get_attr("clip-end")[4:-1])
-                        current_par.clips.append(Audio(id, source, begin, end))
+                        current_par.clips.append(Audio(self.source, id, src, begin, end))
                     logger.debug(f"SMIL {self.reference.resource}, par: {current_par.id} contains {len(current_par.clips)} audio clip(s).")
 
                 # Add to the list of Parallel
-                self.pars.append(current_par)
+                self._pars.append(current_par)
 
-        self.is_loaded = True
-        logger.debug(f"SMIL {self.reference.resource} contains {len(self.pars)} pars.")
+        self._is_loaded = True
+        logger.debug(f"SMIL {self.reference.resource} contains {len(self._pars)} pars.")
         logger.debug(f"SMIL {self.reference.resource} sucessfully loaded.")
 
 
@@ -208,7 +239,7 @@ class DaisyDtb:
                 a = element.get_children("a").first()
                 src, frag = a.get_attr("href").split("#")
                 smil_reference = Reference(src, frag)
-                self.entries.append(NccEntry(id, level, smil_reference, a.get_text()))
+                self.entries.append(NccEntry(self.source, id, level, smil_reference, a.get_text()))
 
     def _populate_smils(self):
         for entry in self.entries:

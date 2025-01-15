@@ -5,7 +5,7 @@ from typing import List
 
 from loguru import logger
 
-from daisy import DaisyDtb, NccEntry, NewSmil
+from daisy import DaisyDtb, NccEntry, NewSmil, Reference
 from dtbsource import DtbResource, FolderDtbResource
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
@@ -24,17 +24,54 @@ class DaisyDtbNavigator:
         self.max_nav_level = self.dtb.get_depth()
         self.max_ncc_entry_index: int = len(self.dtb.entries) - 1
 
-    def set_nav_level(self, level: int) -> int:
+    @property
+    def nav_filter_is_active(self) -> bool:
+        return self.current_nav_level != 0
+
+    def _set_nav_level(self, level: int) -> int:
         if level < 0 or level > self.max_nav_level:
             return self.current_nav_level
         self.current_nav_level = level
         return self.current_nav_level
 
-    def first_entry(self):
+    def increase_nav_level(self) -> int:
+        """Increase the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self._set_nav_level(self.current_nav_level + 1)
+
+    def decrease_nav_level(self) -> int:
+        """Decrease the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self._set_nav_level(self.current_nav_level - 1)
+
+    def reset_nav_level(self) -> int:
+        """Reset (remove) the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self._set_nav_level(0)
+
+    def get_nav_level(self) -> int:
+        """Get the current navigation level.
+
+        Returns:
+            int: the current navigation level.
+        """
+        return self.current_nav_level
+
+    def first_entry(self) -> NccEntry:
         self.current_ncc_entry_index = 0
-        if self.current_nav_level > 0:
+
+        if self.nav_filter_is_active:
+            # Enumerate upwards
             for index, entry in enumerate(self.dtb.entries):
-                print(f"index {index}, self.current_nav_level: {self.current_nav_level}, entry.level: {entry.level}, check: {self.current_nav_level == entry.level}")
                 if entry.level == self.current_nav_level:
                     self.current_ncc_entry_index = index
                     break
@@ -43,23 +80,42 @@ class DaisyDtbNavigator:
 
         return self.dtb.entries[self.current_ncc_entry_index]
 
-    def last_entry(self):
-        self.current_ncc_entry_index = self.max_ncc_entry_index
+    def last_entry(self) -> NccEntry:
+        if self.nav_filter_is_active:
+            # Enumerate downwards
+            for index in range(self.max_ncc_entry_index, -1, -1):
+                if self.dtb.entries[index].level == self.current_nav_level:
+                    self.current_ncc_entry_index = index
+                    break
+        else:
+            self.current_ncc_entry_index = self.max_ncc_entry_index
+
         return self.dtb.entries[self.current_ncc_entry_index]
 
-    def next_entry(self) -> NccEntry:
-        if self.current_nav_level > 0:
+    def next_entry(self) -> NccEntry | None:
+        current_index = self.current_ncc_entry_index
+
+        if self.nav_filter_is_active:
             for index in range(self.current_ncc_entry_index + 1, self.max_ncc_entry_index):
                 if self.dtb.entries[index].level == self.current_nav_level:
                     self.current_ncc_entry_index = index
                     break
         else:
             self.current_ncc_entry_index = self.current_ncc_entry_index + 1 if self.current_ncc_entry_index < self.max_ncc_entry_index else self.current_ncc_entry_index
-        return self.dtb.entries[self.current_ncc_entry_index]
 
-    def prev_entry(self) -> NccEntry:
-        self.current_ncc_entry_index = self.current_ncc_entry_index - 1 if self.current_ncc_entry_index > 0 else self.current_ncc_entry_index
-        return self.dtb.entries[self.current_ncc_entry_index]
+        return self.dtb.entries[self.current_ncc_entry_index] if self.current_ncc_entry_index != current_index else None
+
+    def prev_entry(self) -> NccEntry | None:
+        current_index = self.current_ncc_entry_index
+        if self.nav_filter_is_active:
+            for index in range(self.current_ncc_entry_index - 1, 0, -1):
+                if self.dtb.entries[index].level == self.current_nav_level:
+                    self.current_ncc_entry_index = index
+                    break
+        else:
+            self.current_ncc_entry_index = self.current_ncc_entry_index - 1 if self.current_ncc_entry_index > 0 else self.current_ncc_entry_index
+
+        return self.dtb.entries[self.current_ncc_entry_index] if self.current_ncc_entry_index != current_index else None
 
 
 def test_dtb(dtb: DaisyDtb) -> None:
@@ -68,9 +124,16 @@ def test_dtb(dtb: DaisyDtb) -> None:
     nav = DaisyDtbNavigator(dtb)
     print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
 
-    print("Level:", nav.set_nav_level(1))
-    print("First", nav.first_entry())
-    print("Next", nav.next_entry())
+    nav.first_entry()
+    entry = nav.next_entry()
+
+    smil = entry.smil
+
+    for par in smil.pars:
+        for index, audio in enumerate(par.clips):
+            data = dtb.source.da
+            print(index, audio, len(data))
+        print()
 
     return
 

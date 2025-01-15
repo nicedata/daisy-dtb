@@ -1,7 +1,7 @@
 import pytest
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
-from dtbsource import DtbResource, ZipDtbResource, FolderDtbResource
+from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
 
 
 def test_source_fail():
@@ -24,7 +24,8 @@ def test_web_source_fail():
 
 def test_web_source_success():
     # Should succeed
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=10)
+    print("XXX", source.buffer)
     assert isinstance(source, FolderDtbResource)
 
 

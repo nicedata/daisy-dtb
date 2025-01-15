@@ -5,18 +5,20 @@ The book may be in a folder (filesystem) or in a remote location (website).
 
 """
 
-from io import BytesIO
 import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
+from io import BytesIO
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 
 from loguru import logger
 
+from resourcebuffer import RESOURCE_BUFFER_MAX_SIZE, ResourceBuffer
+
 
 class DtbResource(ABC):
-    def __init__(self, resource_base: str) -> None:
+    def __init__(self, resource_base: str, buffer_size=0) -> None:
         """Creates a new `DtbResource`.
 
         Args:
@@ -26,7 +28,15 @@ class DtbResource(ABC):
             FileNotFoundError when the resource is not accessible
 
         """
+        if buffer_size < 0:
+            raise ValueError("The buffer minimum cannot be negative.")
+        if buffer_size > RESOURCE_BUFFER_MAX_SIZE:
+            raise ValueError(f"The buffer minimum cannot be greater then {RESOURCE_BUFFER_MAX_SIZE}.")
+
+        self.buffer_size = buffer_size
         self.resource_base = resource_base
+
+        self.buffer: ResourceBuffer = ResourceBuffer(self.buffer_size) if self.buffer_size else None
 
     @abstractmethod
     def get(self, resource_name: str) -> bytes | str | None:
@@ -38,73 +48,14 @@ class DtbResource(ABC):
         Returns:
             bytes | str | None: returned data (str or bytes or None if the resource was not found)
         """
-
-
-# class FileDtbResource(DtbResource):
-#     """This class gets data from the file system"""
-
-#     def __init__(self, resource_base) -> None:
-#         super().__init__(resource_base)
-#         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
-
-#         if not Path(self.resource_base).exists():
-#             raise FileNotFoundError
-
-#     def get(self, resource_name: str) -> bytes | str | None:
-#         path = Path(f"{self.resource_base}{resource_name}")
-#         try:
-#             with open(path, "rb") as resource:
-#                 data: bytes = resource.read()
-#         except FileNotFoundError as e:
-#             logger.error(f"Error: {e.strerror} ({path})")
-#             return None
-
-#         try:
-#             return data.decode("utf-8")
-#         except UnicodeDecodeError:
-#             return data
-
-
-# class WebDtbResource(DtbResource):
-#     """This class gets data from the web"""
-
-#     def __init__(self, resource_base) -> None:
-#         super().__init__(resource_base)
-#         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
-#         error = False
-#         try:
-#             urllib.request.urlopen(self.resource_base)
-#         except HTTPError as e:
-#             error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
-#         except URLError:
-#             error = True
-
-#         if error:
-#             raise FileNotFoundError
-
-#     def get(self, resource_name: str) -> bytes | str | None:
-#         url = f"{self.resource_base}{resource_name}"
-#         try:
-#             response = urllib.request.urlopen(url)
-#             data: bytes = response.read()
-#         except HTTPError as e:
-#             logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
-#             return None
-#         except URLError as e:
-#             logger.error(f"URL error: {e.reason} ({url})")
-#             return None
-
-#         try:
-#             return data.decode("utf-8")
-#         except UnicodeDecodeError:
-#             return data
+        raise NotImplementedError
 
 
 class FolderDtbResource(DtbResource):
     """This class gets data from a filesystem folder or a web location"""
 
-    def __init__(self, resource_base) -> None:
-        super().__init__(resource_base)
+    def __init__(self, resource_base: str, buffer_size=0) -> None:
+        super().__init__(resource_base, buffer_size)
         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
         self.is_web_resource: bool = "://" in self.resource_base
         error = False
@@ -155,8 +106,8 @@ class FolderDtbResource(DtbResource):
 class ZipDtbResource(DtbResource):
     """This class gets data from a ZIP archive (from the filesystem or a web location)."""
 
-    def __init__(self, resource_base) -> None:
-        super().__init__(resource_base)
+    def __init__(self, resource_base, buffer_size=False) -> None:
+        super().__init__(resource_base, buffer_size)
         self.bytes_io: BytesIO = None
         self.is_web_resource: bool = "://" in self.resource_base
         error = False

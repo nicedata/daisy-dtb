@@ -23,7 +23,7 @@ def test_ncc_load_from_filesystem():
     assert dtb.get_title() == "Valentin Haüy - the father of the education for the blind"
 
     dtb.smils[0].load()
-    assert dtb.smils[0].is_loaded is True
+    assert dtb.smils[0]._is_loaded is True
 
 
 def test_ncc_load_from_web():
@@ -43,4 +43,4 @@ def test_ncc_load_from_web():
     assert dtb.get_title() == "Guide pratique bénéficiaires"
 
     dtb.smils[0].load()
-    assert dtb.smils[0].is_loaded is True
+    assert dtb.smils[0]._is_loaded is True

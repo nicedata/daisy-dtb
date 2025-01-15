@@ -21,5 +21,6 @@
         "**/.pytest_cache": true,
         "**/.coverage": true,
         "**/*.egg-info": true,
+        "**/*.mp3": true,
     },
 }
