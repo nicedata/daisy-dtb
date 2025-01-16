@@ -33,7 +33,9 @@ The imlementation can be found in the `dtbsource.py` file.
 
 These classes are used to specifiy the `source` of a `DaisyDTB`, the class representing the Daisy 2.02 book.
 
-<u>Note</u> : If `ZipDtbResource` is instaciated from a web location, data is stored internally to avoid multiple accesses to the web.
+<u>Note 1</u> : If `ZipDtbResource` is instaciated from a web location, data is stored internally to avoid multiple accesses to the web.
+
+<u>Note 2</u> : If `FolderDtbResource` is instaciated, a `buffer_size` can be set. This allows to store resources internally to reduce network traffic.
 
 ### Setting up a datasource
 
@@ -41,7 +43,8 @@ For Daisy books stored in a filesystem :
 
 ```python
 try:
-    source = FolderDtbResource(resource_base='/path/to/a/dtb/folder/')
+    # Create a `FolderDtbResource` with a `buffer_size` of 10 items
+    source = FolderDtbResource(resource_base='/path/to/a/dtb/folder/', buffer_size=10)
 except FileNotFoundError:
     # Handle error
     ...  
@@ -57,7 +60,8 @@ For Daisy books stored in a web location :
 
 ```python
 try:
-    source = FolderDtbResource(resource_base='https://www.site.com/daisy/book/')
+    # Create a `FolderDtbResource` with a `buffer_size` of 20 items
+    source = FolderDtbResource(resource_base='https://www.site.com/daisy/book/', buffer_size=20)
 except FileNotFoundError:
     # Handle error
     ...  
