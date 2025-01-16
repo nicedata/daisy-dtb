@@ -14,5 +14,4 @@ uv.lock
 .coverage
 
 **/src/temp*.*
-**/src/develop.py
 

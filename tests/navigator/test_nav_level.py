@@ -1,6 +1,6 @@
 from navigator_test_context import folder_book
 
-from main import DaisyDtbNavigator
+from develop import DaisyDtbNavigator
 
 
 def test_nav_level() -> None:
