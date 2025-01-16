@@ -24,8 +24,7 @@ def test_web_source_fail():
 
 def test_web_source_success():
     # Should succeed
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=10)
-    print("XXX", source.buffer)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
     assert isinstance(source, FolderDtbResource)
 
 
@@ -93,3 +92,38 @@ def test_zip_source():
     assert isinstance(data, bytes)
 
     assert source.get("unexisting.file") is None
+
+
+def test_source_with_buffer():
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=22)
+    assert source.buffer_size == 22
+
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=10)
+    assert source.buffer_size == 10
+
+
+def test_source_with_buffer_fail():
+    with pytest.raises(ValueError):
+        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=-1)
+
+    with pytest.raises(ValueError):
+        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=100)
+
+
+def test_source_get_with_buffering():
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=5)
+    data = source.get("hauy_0001.smil")
+    data = source.get("hauy_0002.smil")
+    data = source.get("hauy_0001.smil")
+    data = source.get("hauy_0002.smil")
+    assert isinstance(data, str) is True
+
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=1)
+    data = source.get("ncc.html")
+    assert isinstance(data, str) is True
+    data = source.get("ncc.html")
+    assert isinstance(data, str) is True
+    data = source.get("04_Mission_et_valeurs.mp3")
+    assert isinstance(data, bytes) is True
+    data = source.get("ncc.html")
+    assert isinstance(data, str) is True

@@ -7,6 +7,7 @@ from loguru import logger
 
 from daisy import DaisyDtb, NccEntry, NewSmil, Reference
 from dtbsource import DtbResource, FolderDtbResource
+from resourcebuffer import ResourceBuffer, ResourceBufferItem
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
@@ -118,6 +119,29 @@ class DaisyDtbNavigator:
         return self.dtb.entries[self.current_ncc_entry_index] if self.current_ncc_entry_index != current_index else None
 
 
+def test_buffering():
+    buffer = ResourceBuffer(5)
+
+    items = [
+        ResourceBufferItem("item1", b"123"),
+        ResourceBufferItem("item2", b"444"),
+        ResourceBufferItem("item1", b"456"),
+        ResourceBufferItem("item3", "string 4"),
+        ResourceBufferItem("item4", "string 5"),
+        ResourceBufferItem("item5", "string 6"),
+        ResourceBufferItem("item6", "string 7"),
+        ResourceBufferItem("item7", b"string 8"),
+    ]
+
+    for item in items:
+        buffer.add(item)
+
+    pprint(buffer)
+
+    item = buffer.get("item5")
+    print(item)
+
+
 def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
@@ -170,6 +194,9 @@ def test(source: DtbResource) -> None:
 
 
 def main():
+    test_buffering()
+    return
+
     """Perform tests"""
     paths = [SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL]
     paths = [SAMPLE_DTB_PROJECT_PATH]
