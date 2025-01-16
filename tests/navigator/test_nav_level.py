@@ -1,10 +1,10 @@
 from navigator_test_context import folder_book
 
-from develop import DaisyDtbNavigator
+from develop import NccNavigator
 
 
 def test_nav_level() -> None:
-    nav = DaisyDtbNavigator(folder_book)
+    nav = NccNavigator(folder_book)
 
     # This book has a depth of 3
     assert nav.max_nav_level == 3
@@ -28,72 +28,72 @@ def test_nav_level() -> None:
 
 
 def test_level_navigation_first_to_last() -> None:
-    nav = DaisyDtbNavigator(folder_book)
+    nav = NccNavigator(folder_book)
 
     # No level filtering
     assert nav.get_nav_level() == 0
-    entry = nav.first_entry()
+    entry = nav.first()
     assert entry.id == "rgn_ncc_0001"
     while entry is not None:
         assert entry.level in [1, 2, 3]
-        entry = nav.next_entry()
+        entry = nav.next()
 
     # Level 1
     assert nav.increase_nav_level() == 1
-    entry = nav.first_entry()
+    entry = nav.first()
     assert entry.id == "rgn_ncc_0001"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.next_entry()
+        entry = nav.next()
 
     # Level 2
     assert nav.increase_nav_level() == 2
-    entry = nav.first_entry()
+    entry = nav.first()
     assert entry.id == "rgn_ncc_0002"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.next_entry()
+        entry = nav.next()
 
     # Level 3
     assert nav.increase_nav_level() == 3
-    entry = nav.first_entry()
+    entry = nav.first()
     assert entry.id == "rgn_ncc_0003"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.next_entry()
+        entry = nav.next()
 
 
 def test_level_navigation_last_to_first() -> None:
-    nav = DaisyDtbNavigator(folder_book)
+    nav = NccNavigator(folder_book)
 
     # No level filtering
     assert nav.get_nav_level() == 0
-    entry = nav.last_entry()
+    entry = nav.last()
     assert entry.id == "rgn_ncc_0057"
     while entry is not None:
         assert entry.level in [1, 2, 3]
-        entry = nav.prev_entry()
+        entry = nav.prev()
 
     # Level 1
     assert nav.increase_nav_level() == 1
-    entry = nav.last_entry()
+    entry = nav.last()
     assert entry.id == "rgn_ncc_0052"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.prev_entry()
+        entry = nav.prev()
 
     # Level 2
     assert nav.increase_nav_level() == 2
-    entry = nav.last_entry()
+    entry = nav.last()
     assert entry.id == "rgn_ncc_0057"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.prev_entry()
+        entry = nav.prev()
 
     # Level 3
     assert nav.increase_nav_level() == 3
-    entry = nav.last_entry()
+    entry = nav.last()
     assert entry.id == "rgn_ncc_0040"
     while entry is not None:
         assert entry.level == nav.get_nav_level()
-        entry = nav.prev_entry()
+        entry = nav.prev()

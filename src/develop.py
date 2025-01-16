@@ -1,29 +1,75 @@
+from abc import ABC, abstractmethod
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pprint import pprint
-from typing import List
+from typing import List, Union, override
 
 from loguru import logger
 
-from daisy import DaisyDtb, NccEntry, NewSmil, Reference
+from daisy import Audio, DaisyDtb, NccEntry, NewSmil, Parallel
 from dtbsource import DtbResource, FolderDtbResource
-from resourcebuffer import ResourceBuffer, ResourceBufferItem
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 
+class Navigator:
+    def __init__(self, items: List):
+        if not isinstance(items, List):
+            raise ValueError("Items must be iterable.")
+        if len(items) < 1:
+            raise ValueError("There are no items to navigate in.")
+
+        super().__init__()
+        self.items = items
+        self.current_index = 0
+        self.max_index = len(self.items) - 1
+
+    def first(self) -> Union[NccEntry, Parallel, Audio]:
+        self.current_index = 0
+        return self.items[self.current_index]
+
+    def next(self) -> Union[NccEntry, Parallel, Audio, None]:
+        if self.current_index + 1 < self.max_index:
+            self.current_index = self.current_index + 1
+            return self.items[self.current_index]
+        return None
+
+    def prev(self) -> Union[NccEntry, Parallel, Audio, None]:
+        if self.current_index - 1 >= 0:
+            self.current_index = self.current_index - 1
+            return self.items[self.current_index]
+        return None
+
+    def last(self) -> NccEntry | Parallel | Audio:
+        self.current_index = self.max_index
+        return self.items[self.current_index]
+
+    def current(self) -> Union[NccEntry, Parallel, Audio]:
+        return self.items[self.current_index]
+
+    def navigate_to(self, item_id: str) -> Union[NccEntry, Parallel, Audio, None]:
+        try:
+            index = [_.id for _ in self.items].index(item_id)
+            logger.debug(f"Item with id {item_id} found.")
+            return self.items[index]
+        except ValueError:
+            logger.debug(f"Item with id {item_id} not found.")
+            return None
+        except AttributeError:
+            logger.debug("One of the items in the list has no id attribute.")
+            return None
+
+
 @dataclass
-class DaisyDtbNavigator:
+class NccNavigator(Navigator):
     dtb: DaisyDtb
     max_nav_level: int = 0
     current_nav_level: int = 0
-    current_ncc_entry_index: int = -1
-    max_ncc_entry_index: int = 0
 
     def __post_init__(self):
+        super().__init__(self.dtb.entries)
         self.max_nav_level = self.dtb.get_depth()
-        self.max_ncc_entry_index: int = len(self.dtb.entries) - 1
 
     @property
     def nav_filter_is_active(self) -> bool:
@@ -67,97 +113,129 @@ class DaisyDtbNavigator:
         """
         return self.current_nav_level
 
-    def first_entry(self) -> NccEntry:
-        self.current_ncc_entry_index = 0
+    @override
+    def first(self) -> NccEntry:
+        """Get the first NCC entry.
 
+        Returns:
+            NccEntry: the first entry
+        """
+        item = super().first()
         if self.nav_filter_is_active:
             # Enumerate upwards
-            for index, entry in enumerate(self.dtb.entries):
-                if entry.level == self.current_nav_level:
-                    self.current_ncc_entry_index = index
+            while item is not None:
+                if item.level == self.current_nav_level:
                     break
-        else:
-            self.current_ncc_entry_index = 0
+                item = super().next()
 
-        return self.dtb.entries[self.current_ncc_entry_index]
+        return item
 
-    def last_entry(self) -> NccEntry:
+    @override
+    def last(self) -> NccEntry:
+        """Get the last NCC entry.
+
+        Returns:
+            NccEntry: the first entry
+        """
+        item = super().last()
         if self.nav_filter_is_active:
-            # Enumerate downwards
-            for index in range(self.max_ncc_entry_index, -1, -1):
-                if self.dtb.entries[index].level == self.current_nav_level:
-                    self.current_ncc_entry_index = index
+            while item is not None:
+                if item.level == self.current_nav_level:
                     break
-        else:
-            self.current_ncc_entry_index = self.max_ncc_entry_index
+                item = super().prev()
 
-        return self.dtb.entries[self.current_ncc_entry_index]
+        return item
 
-    def next_entry(self) -> NccEntry | None:
-        current_index = self.current_ncc_entry_index
-
+    @override
+    def next(self) -> NccEntry | None:
+        item = super().next()
         if self.nav_filter_is_active:
-            for index in range(self.current_ncc_entry_index + 1, self.max_ncc_entry_index):
-                if self.dtb.entries[index].level == self.current_nav_level:
-                    self.current_ncc_entry_index = index
+            while item is not None:
+                if item.level == self.current_nav_level:
                     break
-        else:
-            self.current_ncc_entry_index = self.current_ncc_entry_index + 1 if self.current_ncc_entry_index < self.max_ncc_entry_index else self.current_ncc_entry_index
+                item = super().next()
 
-        return self.dtb.entries[self.current_ncc_entry_index] if self.current_ncc_entry_index != current_index else None
+        return item
 
-    def prev_entry(self) -> NccEntry | None:
-        current_index = self.current_ncc_entry_index
+    @override
+    def prev(self) -> NccEntry | None:
+        item = super().prev()
         if self.nav_filter_is_active:
-            for index in range(self.current_ncc_entry_index - 1, 0, -1):
-                if self.dtb.entries[index].level == self.current_nav_level:
-                    self.current_ncc_entry_index = index
+            while item is not None:
+                if item.level == self.current_nav_level:
                     break
-        else:
-            self.current_ncc_entry_index = self.current_ncc_entry_index - 1 if self.current_ncc_entry_index > 0 else self.current_ncc_entry_index
+                item = super().prev()
 
-        return self.dtb.entries[self.current_ncc_entry_index] if self.current_ncc_entry_index != current_index else None
-
-
-def test_buffering():
-    buffer = ResourceBuffer(5)
-
-    items = [
-        ResourceBufferItem("item1", b"123"),
-        ResourceBufferItem("item2", b"444"),
-        ResourceBufferItem("item1", b"456"),
-        ResourceBufferItem("item3", "string 4"),
-        ResourceBufferItem("item4", "string 5"),
-        ResourceBufferItem("item5", "string 6"),
-        ResourceBufferItem("item6", "string 7"),
-        ResourceBufferItem("item7", b"string 8"),
-    ]
-
-    for item in items:
-        buffer.add(item)
-
-    pprint(buffer)
-
-    item = buffer.get("item5")
-    print(item)
+        return item
 
 
 def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
-    nav = DaisyDtbNavigator(dtb)
+    # Resize buffer
+    dtb.source.resize_buffer(20)
+
+    nav = NccNavigator(dtb)
     print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
+    nav.increase_nav_level()
+    print(nav.get_nav_level())
+
+    entry = nav.first()
+    entry = nav.next()
+    return
+    while entry is not None:
+        print(entry.id, " -> ", entry.level)
+        entry = nav.next()
+
+    return
+
+    entry = nav.navigate_to("rgn_ncc_0056")
+    entry = nav.first()
+
+    smilnav = Navigator(dtb.smils)
+    smil = smilnav.first()
+    while smil is not None:
+        smil = smilnav.next()
+
+    return
 
     nav.first_entry()
     entry = nav.next_entry()
 
     smil = entry.smil
 
+    smilnav = SmilNavigator(smil)
+    par = smilnav.navigate_to("rgn_par_0002_0008")
+    pprint(par)
+    return
+
+    par = smilnav.first_par()
+    par = smilnav.next_par()
+
+    clipnav = ClipNavigator(par)
+    print(clipnav)
+
+    return
+    while par is not None:
+        pprint(par)
+        par = smilnav.next_par()
+    print("-" * 80)
+    par = smilnav.last_par()
+    while par is not None:
+        pprint(par)
+        par = smilnav.prev_par()
+    return
+
+    return
+
     for par in smil.pars:
         for index, audio in enumerate(par.clips):
-            data = dtb.source.da
+            data = dtb.source.get(audio.src)
             print(index, audio, len(data))
         print()
+
+    for item in dtb.source.buffer._items:
+        print(item.name)
 
     return
 
@@ -194,9 +272,6 @@ def test(source: DtbResource) -> None:
 
 
 def main():
-    test_buffering()
-    return
-
     """Perform tests"""
     paths = [SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL]
     paths = [SAMPLE_DTB_PROJECT_PATH]
@@ -213,7 +288,9 @@ def main():
             return
 
     for source in sources:
-        test(source)
+        source.resize_buffer(10)
+        dtb = DaisyDtb(source)
+        test_dtb(dtb)
 
 
 if __name__ == "__main__":

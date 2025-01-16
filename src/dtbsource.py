@@ -16,8 +16,6 @@ from loguru import logger
 
 from resourcebuffer import ResourceBuffer, ResourceBufferItem
 
-MAX_RESOURCE_BUFFER_SIZE = 50
-
 
 class DtbResource(ABC):
     def __init__(self, resource_base: str, buffer_size=0) -> None:
@@ -28,22 +26,24 @@ class DtbResource(ABC):
             buffer_size (int, optional): the size of the resource buffer. Defaults to 0.
 
         Raises:
-            ValueError: if the requested buffer size is less than 0 or greater than `MAX_RESOURCE_BUFFER_SIZE`.
+            ValueError: if the requested buffer size is less than 0.
         """
 
         if buffer_size < 0:
-            raise ValueError("The buffer minimum cannot be negative.")
-        if buffer_size > MAX_RESOURCE_BUFFER_SIZE:
-            raise ValueError(f"The buffer minimum cannot be greater then {MAX_RESOURCE_BUFFER_SIZE}.")
+            raise ValueError("The buffer size cannot be negative.")
 
-        self.buffer_size = buffer_size
         self.resource_base = resource_base
 
-        self.buffer: ResourceBuffer = ResourceBuffer(self.buffer_size) if self.buffer_size else None
+        self.buffer = ResourceBuffer()
+        self.buffer.set_size(buffer_size)
 
     @abstractmethod
     def get(self, resource_name: str) -> bytes | str | None:
         """Get data and return it as a byte array or a string, or None in case of an error.
+
+        When the resource is buffered
+            - the method gets it from the buffer
+            - if not found in the buffer, it is added to it
 
         Args:
             resource_name (str): the resource to get (typically a file name)
@@ -67,21 +67,22 @@ class DtbResource(ABC):
         except UnicodeDecodeError:
             return data
 
-    def _get_from_buffer(self, resource_name: str) -> ResourceBufferItem | None:
-        if self.buffer is None:
-            return None
+    def resize_buffer(self, new_size: int) -> None:
+        """Resize the resource buffer.
 
-        data = self.buffer.get(resource_name)
-        if data is not None:
-            return data
-
-        return None
-
-    def _add_to_buffer(self, resource_name: str, data: bytes) -> None:
-        if self.buffer is None:
+        Args:
+            new_size (int): the new size.
+        """
+        if new_size == self.buffer.get_size():
+            logger.debug("Buffer not resized. No change in buffer size.")
             return
 
-        self.buffer.add(ResourceBufferItem(resource_name, data))
+        if new_size >= 0:
+            self.buffer.set_size(new_size)
+            logger.debug(f"Buffer resized to hold {self.buffer.get_size()} items")
+
+    def get_buffer_size(self):
+        return self.buffer.get_size()
 
 
 class FolderDtbResource(DtbResource):
@@ -111,7 +112,7 @@ class FolderDtbResource(DtbResource):
         path = f"{self.resource_base}{resource_name}"
 
         # Try to get data from the buffered resources
-        buffered_resource = self._get_from_buffer(resource_name)
+        buffered_resource = self.buffer.get(resource_name)
         if buffered_resource is not None:
             return self._convert_data(buffered_resource.data)
 
@@ -133,7 +134,8 @@ class FolderDtbResource(DtbResource):
                 logger.error(f"Error: {e.strerror} ({path})")
                 return None
 
-        self._add_to_buffer(resource_name, data)
+        # Buffer the resource
+        self.buffer.add(ResourceBufferItem(resource_name, data))
 
         return self._convert_data(data)
 
@@ -165,6 +167,16 @@ class ZipDtbResource(DtbResource):
         if error:
             raise FileNotFoundError
 
+    def resize_buffer(self, new_size: int) -> None:
+        """Resize the resource buffer.
+
+        In the `ZipDtbResource` class, this method does nothing sice the ZIP archive is already loaded internally.
+
+        Args:
+            new_size (int): the new size.
+        """
+        return
+
     def get(self, resource_name: str) -> bytes | str | None:
         error = False
 
@@ -181,7 +193,4 @@ class ZipDtbResource(DtbResource):
             logger.error(f"Error: archive {self.resource_base} does not contain file {resource_name}")
             return None
 
-        try:
-            return data.decode("utf-8")  # str
-        except UnicodeDecodeError:
-            return data  # bytes
+        return self._convert_data(data)

@@ -9,6 +9,9 @@ from domlib import DomFactory
 from dtbsource import DtbResource
 
 
+class Navigation: ...
+
+
 @dataclass
 class MetaData:
     """Representation of metadata."""
@@ -80,9 +83,6 @@ class Audio:
     begin: float
     end: float
 
-    # Internal attributes (dynamically populated)
-    _buffer: bytes = None
-
     @property
     def duration(self) -> float:
         """Get the duration of a clip, in seconds."""
@@ -90,9 +90,7 @@ class Audio:
 
     @property
     def data(self) -> bytes:
-        if self._buffer is None:
-            self._buffer = self.source.get(self.src)
-        return self._buffer
+        return self.source.get(self.src)
 
 
 @dataclass

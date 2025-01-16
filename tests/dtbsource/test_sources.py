@@ -2,6 +2,7 @@ import pytest
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
+from resourcebuffer import ResourceBuffer, ResourceBufferItem
 
 
 def test_source_fail():
@@ -96,18 +97,30 @@ def test_zip_source():
 
 def test_source_with_buffer():
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=22)
-    assert source.buffer_size == 22
+    assert source.get_buffer_size() == 22
 
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=10)
-    assert source.buffer_size == 10
+    assert source.get_buffer_size() == 10
 
 
 def test_source_with_buffer_fail():
     with pytest.raises(ValueError):
         FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=-1)
 
-    with pytest.raises(ValueError):
-        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=100)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=5)
+    assert source.get_buffer_size() == 5
+
+    # Try buffer resize with negatve value
+    source.resize_buffer(-1)
+    assert source.get_buffer_size() == 5
+
+    # Try buffer resize (no change)
+    source.resize_buffer(5)
+    assert source.get_buffer_size() == 5
+
+    # Try buffer resize
+    source.resize_buffer(15)
+    assert source.get_buffer_size() == 15
 
 
 def test_source_get_with_buffering():
@@ -127,3 +140,30 @@ def test_source_get_with_buffering():
     assert isinstance(data, bytes) is True
     data = source.get("ncc.html")
     assert isinstance(data, str) is True
+
+
+def test_buffering():
+    buffer = ResourceBuffer(5)
+
+    items = [
+        ResourceBufferItem("item1", b"123"),
+        ResourceBufferItem("item2", b"444"),
+        ResourceBufferItem("item1", b"456"),
+        ResourceBufferItem("item3", "string 4"),
+        ResourceBufferItem("item4", "string 5"),
+        ResourceBufferItem("item5", "string 6"),
+        ResourceBufferItem("item6", "string 7"),
+        ResourceBufferItem("item7", b"string 8"),
+    ]
+
+    assert buffer.get_size() == 5
+    for item in items:
+        buffer.add(item)
+
+    buffer.set_size(10)
+    assert buffer.get_size() == 10
+    for item in items:
+        buffer.add(item)
+
+    item = buffer.get("item5")
+    assert item.name == "item5"
