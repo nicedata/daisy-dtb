@@ -5,9 +5,9 @@ from typing import List, override
 
 from loguru import logger
 
+from basic_navigator import BasicNavigator
 from daisy import DaisyDtb, NccEntry, NewSmil
 from dtbsource import DtbResource, FolderDtbResource
-from navigators import BasicNavigator
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"

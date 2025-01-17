@@ -1,6 +1,6 @@
 import pytest
 
-from navigators import BasicNavigator
+from basic_navigator import BasicNavigator
 
 
 class TestItemWithId:
