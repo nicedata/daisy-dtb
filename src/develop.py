@@ -1,6 +1,5 @@
-from abc import ABC, abstractmethod
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pprint import pprint
 from typing import List, Union, override
 
@@ -14,45 +13,84 @@ SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 
 class Navigator:
-    def __init__(self, items: List):
+    """This class implements basic metods to navigate in a list of items."""
+
+    def __init__(self, items: List[Union[NccEntry, Parallel, Audio]]):
+        # Checks
         if not isinstance(items, List):
             raise ValueError("Items must be iterable.")
         if len(items) < 1:
             raise ValueError("There are no items to navigate in.")
 
         super().__init__()
-        self.items = items
-        self.current_index = 0
-        self.max_index = len(self.items) - 1
+        self._items = items
+        self._current_index = 0
+        self._max_index = len(self._items) - 1
 
     def first(self) -> Union[NccEntry, Parallel, Audio]:
-        self.current_index = 0
-        return self.items[self.current_index]
+        """Go to the first item.
+
+        Returns:
+            Union[NccEntry, Parallel, Audio]: the first item in the list.
+        """
+        self._current_index = 0
+        return self._items[self._current_index]
 
     def next(self) -> Union[NccEntry, Parallel, Audio, None]:
-        if self.current_index + 1 < self.max_index:
-            self.current_index = self.current_index + 1
-            return self.items[self.current_index]
+        """Go to the next item.
+
+        Returns:
+            Union[NccEntry, Parallel, Audio, None]: the next item in the list.
+        """
+        if self._current_index + 1 < self._max_index:
+            self._current_index = self._current_index + 1
+            return self._items[self._current_index]
         return None
 
     def prev(self) -> Union[NccEntry, Parallel, Audio, None]:
-        if self.current_index - 1 >= 0:
-            self.current_index = self.current_index - 1
-            return self.items[self.current_index]
+        """Go to the previous item.
+
+        Returns:
+            Union[NccEntry, Parallel, Audio, None]: the previous item in the list.
+        """
+        if self._current_index - 1 >= 0:
+            self._current_index = self._current_index - 1
+            return self._items[self._current_index]
         return None
 
     def last(self) -> NccEntry | Parallel | Audio:
-        self.current_index = self.max_index
-        return self.items[self.current_index]
+        """Go to the last item.
+
+        Returns:
+            Union[NccEntry, Parallel, Audio]: the previous item in the list.
+        """
+        self._current_index = self._max_index
+        return self._items[self._current_index]
 
     def current(self) -> Union[NccEntry, Parallel, Audio]:
-        return self.items[self.current_index]
+        """Get the current item.
+
+        Returns:
+            Union[NccEntry, Parallel, Audio]: the current item.
+        """
+        return self._items[self._current_index]
 
     def navigate_to(self, item_id: str) -> Union[NccEntry, Parallel, Audio, None]:
+        """Navigate to a specific item based on its id.
+
+        Note :
+            - If the item has no 'id' attribute, the method does nothing.
+
+        Args:
+            item_id (str): the searched item id
+
+        Returns:
+            Union[NccEntry, Parallel, Audio, None]: te returned item.
+        """
         try:
-            index = [_.id for _ in self.items].index(item_id)
+            index = [_.id for _ in self._items].index(item_id)
             logger.debug(f"Item with id {item_id} found.")
-            return self.items[index]
+            return self._items[index]
         except ValueError:
             logger.debug(f"Item with id {item_id} not found.")
             return None
@@ -62,48 +100,44 @@ class Navigator:
 
 
 @dataclass
-class NccNavigator(Navigator):
+class TocNavigator(Navigator):
+    """
+    This class provides method to navigate in table of contents of a digital talking book.
+
+    Notes :
+        - It overrides the methods of its `Navigator` base class.
+        - It also provides methods to generate a TOC of the book
+    """
+
     dtb: DaisyDtb
-    max_nav_level: int = 0
-    current_nav_level: int = 0
+
+    # Internal attributes
+    _max_nav_level: int = 0
+    _current_nav_level: int = 0
 
     def __post_init__(self):
         super().__init__(self.dtb.entries)
-        self.max_nav_level = self.dtb.get_depth()
+        self._max_nav_level = self.dtb.get_depth()
 
     @property
     def nav_filter_is_active(self) -> bool:
-        return self.current_nav_level != 0
+        return self._current_nav_level != 0
 
-    def _set_nav_level(self, level: int) -> int:
-        if level < 0 or level > self.max_nav_level:
-            return self.current_nav_level
-        self.current_nav_level = level
-        return self.current_nav_level
+    def set_nav_level(self, level: int) -> int:
+        """Set the navigation level.
 
-    def increase_nav_level(self) -> int:
-        """Increase the navigation level.
+        Args:
+            level (int): the requested navigation level
 
         Returns:
-            int: the updated navigation level
+            int: the actual navigation level
         """
-        return self._set_nav_level(self.current_nav_level + 1)
+        # Check
+        if level < 0 or level > self._max_nav_level:
+            return self._current_nav_level
 
-    def decrease_nav_level(self) -> int:
-        """Decrease the navigation level.
-
-        Returns:
-            int: the updated navigation level
-        """
-        return self._set_nav_level(self.current_nav_level - 1)
-
-    def reset_nav_level(self) -> int:
-        """Reset (remove) the navigation level.
-
-        Returns:
-            int: the updated navigation level
-        """
-        return self._set_nav_level(0)
+        self._current_nav_level = level
+        return self._current_nav_level
 
     def get_nav_level(self) -> int:
         """Get the current navigation level.
@@ -111,20 +145,46 @@ class NccNavigator(Navigator):
         Returns:
             int: the current navigation level.
         """
-        return self.current_nav_level
+        return self._current_nav_level
+
+    def increase_nav_level(self) -> int:
+        """Increase the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self.set_nav_level(self._current_nav_level + 1)
+
+    def decrease_nav_level(self) -> int:
+        """Decrease the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self.set_nav_level(self._current_nav_level - 1)
+
+    def reset_nav_level(self) -> int:
+        """Reset (remove) the navigation level.
+
+        Returns:
+            int: the updated navigation level
+        """
+        return self.set_nav_level(0)
 
     @override
     def first(self) -> NccEntry:
         """Get the first NCC entry.
+        - If a level filter is active, it is taken into account.
 
         Returns:
             NccEntry: the first entry
         """
         item = super().first()
+
         if self.nav_filter_is_active:
             # Enumerate upwards
             while item is not None:
-                if item.level == self.current_nav_level:
+                if item.level == self._current_nav_level:
                     break
                 item = super().next()
 
@@ -133,14 +193,15 @@ class NccNavigator(Navigator):
     @override
     def last(self) -> NccEntry:
         """Get the last NCC entry.
+        - If a level filter is active, it is taken into account.
 
         Returns:
-            NccEntry: the first entry
+            NccEntry: the last entry
         """
         item = super().last()
         if self.nav_filter_is_active:
             while item is not None:
-                if item.level == self.current_nav_level:
+                if item.level == self._current_nav_level:
                     break
                 item = super().prev()
 
@@ -148,10 +209,16 @@ class NccNavigator(Navigator):
 
     @override
     def next(self) -> NccEntry | None:
+        """Get the next NCC entry.
+        - If a level filter is active, it is taken into account.
+
+        Returns:
+            NccEntry: the next entry
+        """
         item = super().next()
         if self.nav_filter_is_active:
             while item is not None:
-                if item.level == self.current_nav_level:
+                if item.level == self._current_nav_level:
                     break
                 item = super().next()
 
@@ -159,14 +226,51 @@ class NccNavigator(Navigator):
 
     @override
     def prev(self) -> NccEntry | None:
+        """Get the previous NCC entry.
+        - If a level filter is active, it is taken into account.
+
+        Returns:
+            NccEntry: the previous entry
+        """
         item = super().prev()
         if self.nav_filter_is_active:
             while item is not None:
-                if item.level == self.current_nav_level:
+                if item.level == self._current_nav_level:
                     break
                 item = super().prev()
 
         return item
+
+    def generate_toc(self, format: str) -> str:
+        """Generate a TOC of the current book.
+
+        Supported formats:
+            - `md-list`    : a Markdown list (*)
+            - `md-headers` : Markdown headers (#)
+            - `html-headers` : HTML headers (<h1/> to <h6/>)
+
+        Args:
+            format (str): the requested format
+
+        Returns:
+            str: the formatted TOC
+        """
+        result = ""
+        if isinstance(format, str) is False:
+            return result
+
+        match format.lower():
+            case "md-list":
+                for entry in self.dtb.entries:
+                    result += f'{"   " * (entry.level-1)}* {entry.text}\n'
+            case "md-headers":
+                for entry in self.dtb.entries:
+                    result += f'{"#" * (entry.level):6} {entry.text}\n'
+            case "html-headers":
+                for entry in self.dtb.entries:
+                    result += f"<h{(entry.level)}>{entry.text}</h{(entry.level)}>\n"
+
+        return result
 
 
 def test_dtb(dtb: DaisyDtb) -> None:
@@ -175,7 +279,13 @@ def test_dtb(dtb: DaisyDtb) -> None:
     # Resize buffer
     dtb.source.resize_buffer(20)
 
-    nav = NccNavigator(dtb)
+    nav = TocNavigator(dtb)
+
+    print(nav.generate_toc("md-list"))
+    print(nav.generate_toc("md-headers"))
+    print(nav.generate_toc("html-headers"))
+
+    return
     print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
     nav.increase_nav_level()
     print(nav.get_nav_level())

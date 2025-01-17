@@ -1,21 +1,21 @@
 from navigator_test_context import folder_book
 
-from develop import NccNavigator
+from develop import TocNavigator
 
 
 def test_nav_level() -> None:
-    nav = NccNavigator(folder_book)
+    nav = TocNavigator(folder_book)
 
     # This book has a depth of 3
-    assert nav.max_nav_level == 3
+    assert nav._max_nav_level == 3
 
     # Initial nav level must be 0
     assert nav.get_nav_level() == 0
 
     assert nav.increase_nav_level() == 1
     assert nav.increase_nav_level() == 2
-    assert nav.increase_nav_level() == nav.max_nav_level
-    assert nav.increase_nav_level() == nav.max_nav_level
+    assert nav.increase_nav_level() == nav._max_nav_level
+    assert nav.increase_nav_level() == nav._max_nav_level
 
     # Current level is 3 (max_nav_level)
     assert nav.decrease_nav_level() == 2
@@ -28,7 +28,7 @@ def test_nav_level() -> None:
 
 
 def test_level_navigation_first_to_last() -> None:
-    nav = NccNavigator(folder_book)
+    nav = TocNavigator(folder_book)
 
     # No level filtering
     assert nav.get_nav_level() == 0
@@ -64,7 +64,7 @@ def test_level_navigation_first_to_last() -> None:
 
 
 def test_level_navigation_last_to_first() -> None:
-    nav = NccNavigator(folder_book)
+    nav = TocNavigator(folder_book)
 
     # No level filtering
     assert nav.get_nav_level() == 0
