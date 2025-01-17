@@ -35,6 +35,7 @@ class BasicNavigator:
         Raises:
             ValueError: if the supplied list is not iterable
             ValueError: if the list is empty
+            ValueError: if all list items ar not of the same type
         """
 
         # Check if we have a list
@@ -126,7 +127,7 @@ class BasicNavigator:
         # Do we have classes or dicts ?
         is_class_list = True
         try:
-            vars(self._items[0])  # This fails on a list of dicts
+            vars(self._items[0])  # This fails on a dict !
         except TypeError:
             is_class_list = False
 
