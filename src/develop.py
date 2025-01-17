@@ -1,106 +1,20 @@
 import os
 from dataclasses import dataclass
 from pprint import pprint
-from typing import List, Union, override
+from typing import List, override
 
 from loguru import logger
 
-from daisy import Audio, DaisyDtb, NccEntry, NewSmil, Parallel
+from daisy import DaisyDtb, NccEntry, NewSmil
 from dtbsource import DtbResource, FolderDtbResource
+from navigators import BasicNavigator
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 
-class Navigator:
-    """This class implements basic metods to navigate in a list of items."""
-
-    def __init__(self, items: List[Union[NccEntry, Parallel, Audio]]):
-        # Checks
-        if not isinstance(items, List):
-            raise ValueError("Items must be iterable.")
-        if len(items) < 1:
-            raise ValueError("There are no items to navigate in.")
-
-        super().__init__()
-        self._items = items
-        self._current_index = 0
-        self._max_index = len(self._items) - 1
-
-    def first(self) -> Union[NccEntry, Parallel, Audio]:
-        """Go to the first item.
-
-        Returns:
-            Union[NccEntry, Parallel, Audio]: the first item in the list.
-        """
-        self._current_index = 0
-        return self._items[self._current_index]
-
-    def next(self) -> Union[NccEntry, Parallel, Audio, None]:
-        """Go to the next item.
-
-        Returns:
-            Union[NccEntry, Parallel, Audio, None]: the next item in the list.
-        """
-        if self._current_index + 1 < self._max_index:
-            self._current_index = self._current_index + 1
-            return self._items[self._current_index]
-        return None
-
-    def prev(self) -> Union[NccEntry, Parallel, Audio, None]:
-        """Go to the previous item.
-
-        Returns:
-            Union[NccEntry, Parallel, Audio, None]: the previous item in the list.
-        """
-        if self._current_index - 1 >= 0:
-            self._current_index = self._current_index - 1
-            return self._items[self._current_index]
-        return None
-
-    def last(self) -> NccEntry | Parallel | Audio:
-        """Go to the last item.
-
-        Returns:
-            Union[NccEntry, Parallel, Audio]: the previous item in the list.
-        """
-        self._current_index = self._max_index
-        return self._items[self._current_index]
-
-    def current(self) -> Union[NccEntry, Parallel, Audio]:
-        """Get the current item.
-
-        Returns:
-            Union[NccEntry, Parallel, Audio]: the current item.
-        """
-        return self._items[self._current_index]
-
-    def navigate_to(self, item_id: str) -> Union[NccEntry, Parallel, Audio, None]:
-        """Navigate to a specific item based on its id.
-
-        Note :
-            - If the item has no 'id' attribute, the method does nothing.
-
-        Args:
-            item_id (str): the searched item id
-
-        Returns:
-            Union[NccEntry, Parallel, Audio, None]: te returned item.
-        """
-        try:
-            index = [_.id for _ in self._items].index(item_id)
-            logger.debug(f"Item with id {item_id} found.")
-            return self._items[index]
-        except ValueError:
-            logger.debug(f"Item with id {item_id} not found.")
-            return None
-        except AttributeError:
-            logger.debug("One of the items in the list has no id attribute.")
-            return None
-
-
 @dataclass
-class TocNavigator(Navigator):
+class TocNavigator(BasicNavigator):
     """
     This class provides method to navigate in table of contents of a digital talking book.
 
@@ -273,6 +187,22 @@ class TocNavigator(Navigator):
         return result
 
 
+TEST_LIST_A = [
+    {"id": 1, "value": "1"},  # 0
+    {"id": 2, "value": "2"},  # 1
+    {"id": 3, "value": "3"},  # 2
+    {"id": 4, "value": "4"},  # 3
+    {"id": 5, "value": "5"},  # 4
+    {"id": 6, "value": "6"},  # 5
+]
+
+
+def test_dict_list():
+    nav = BasicNavigator(TEST_LIST_A)
+    item = nav.navigate_to(3)
+    print(item)
+
+
 def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
@@ -280,10 +210,10 @@ def test_dtb(dtb: DaisyDtb) -> None:
     dtb.source.resize_buffer(20)
 
     nav = TocNavigator(dtb)
+    entry = nav.first()
 
-    print(nav.generate_toc("md-list"))
-    print(nav.generate_toc("md-headers"))
-    print(nav.generate_toc("html-headers"))
+    item = nav.navigate_to("rgn_ncc_0009")
+    print(item)
 
     return
     print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
@@ -302,7 +232,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
     entry = nav.navigate_to("rgn_ncc_0056")
     entry = nav.first()
 
-    smilnav = Navigator(dtb.smils)
+    smilnav = BasicNavigator(dtb.smils)
     smil = smilnav.first()
     while smil is not None:
         smil = smilnav.next()
@@ -382,6 +312,8 @@ def test(source: DtbResource) -> None:
 
 
 def main():
+    test_dict_list()
+
     """Perform tests"""
     paths = [SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL]
     paths = [SAMPLE_DTB_PROJECT_PATH]
