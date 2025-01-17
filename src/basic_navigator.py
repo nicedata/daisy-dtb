@@ -1,4 +1,4 @@
-"""Definition of various classes used to implement book navigation"""
+"""Definition of `BasicNavigator` whis is to be used to implement book navigation."""
 
 from typing import List, Union
 
@@ -132,7 +132,10 @@ class BasicNavigator:
             is_class_list = False
 
         try:
-            index = [(_.id if is_class_list else _["id"]) for _ in self._items].index(item_id)
+            if is_class_list:
+                index = [_.id for _ in self._items].index(item_id)
+            else:
+                index = [_["id"] for _ in self._items].index(item_id)
             logger.debug(f"Item with id {item_id} found.")
             return self._items[index]
         except ValueError:
