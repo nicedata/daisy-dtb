@@ -1,6 +1,6 @@
-from docbuffer import DocBuffer
+# from docbuffer import DocBuffer
 
-from docbuffer_test_context import TEST_NCC_PATH, TEST_SMIL_PATH
+from docbuffer_test_context import TEST_NCC_PATH  # , TEST_SMIL_PATH
 
 
 def test_open():
