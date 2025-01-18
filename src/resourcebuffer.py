@@ -1,22 +1,9 @@
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import Any, List, Union
 
 from loguru import logger
 
 from domlib import Document, DomFactory
-
-
-def _convert_data(data: bytes) -> bytes | str:
-    """Convert `bytes` to a `str` if possible.
-    Args:
-        data (bytes): the input bytes.
-    Returns:
-        bytes | str: the returned str (or bytes).
-    """
-    try:
-        return data.decode("utf-8")
-    except UnicodeDecodeError:
-        return data
 
 
 @dataclass
@@ -27,13 +14,27 @@ class ResourceBufferItem:
     data: Union[bytes, str, Document] = None
     data_type: str = None
 
-    def __post_init__(self):
-        try:
-            self.data = self.data.decode("utf-8")
-        except UnicodeDecodeError:
-            ...
+    @staticmethod
+    def _convert_data(data: bytes) -> Union[bytes, str]:
+        """Convert `bytes` to a `str` or if possible.
 
-        if isinstance(self.data, str):
+        Args:
+            data (bytes): the input bytes.
+
+        Returns:
+            bytes | str | Document: the returned str (or original data).
+        """
+        if not isinstance(data, bytes):
+            return data
+
+        try:
+            return data.decode("utf-8")
+        except UnicodeDecodeError:
+            return data
+
+    def __post_init__(self):
+        data = self._convert_data(self.data)
+        if isinstance(data, str):
             document = DomFactory.create_document_from_string(self.data)
             if document is not None:
                 self.data = document
@@ -67,7 +68,7 @@ class ResourceBuffer:
         return self._size
 
     def add(self, item: ResourceBufferItem) -> None:
-        """Add a `ResourceBufferItem` to the buffer.
+        """Add a `ResourceBufferItem` into the buffer.
 
         This method takes care of the buffer size:
             - If it is 0, nothing is done.
@@ -93,7 +94,7 @@ class ResourceBuffer:
             del self._items[0]
 
         # Append the item
-        logger.debug(f"Adding item {item.name} to the buffer.")
+        logger.debug(f"Adding item {item.name} into the buffer.")
         self._items.append(item)
 
     def get(self, resource_name: str) -> ResourceBufferItem | None:

@@ -20,7 +20,7 @@ def test_get_element_by_id():
     assert test.get_name() == "h5"
     assert test.get_attr("id") == ID
     assert test.get_value() is None
-    assert test.get_text() == ""
+    assert test.get_text() == "Art. 25, al. 2, let. a, phrase introductive"
 
     ID = "dijn0159"
     test = ncc_document.get_element_by_id(ID)
@@ -29,7 +29,7 @@ def test_get_element_by_id():
     assert test.get_name() == "h2"
     assert test.get_attr("id") == ID
     assert test.get_value() is None
-    assert test.get_text() == ""
+    assert test.get_text() == "Arguments - Conseil fédéral et Parlement"
 
     # Find an unfindable element
     test = ncc_document.get_element_by_id("unexisting_id")

@@ -1,4 +1,5 @@
 import pytest
+from domlib import Document
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
@@ -34,7 +35,7 @@ def test_file_source():
 
     # Get a string - should work
     data = source.get("ncc.html")
-    assert isinstance(data, str)
+    assert isinstance(data, Document)
 
     # Get a byte array
     data = source.get("hauy_0002.mp3")
@@ -50,7 +51,7 @@ def test_web_source():
 
     # Get a string - should work
     data = source.get("ncc.html")
-    assert isinstance(data, str)
+    assert isinstance(data, Document)
 
     # Get a byte array
     data = source.get("04_Mission_et_valeurs.mp3")
@@ -129,17 +130,13 @@ def test_source_get_with_buffering():
     data = source.get("hauy_0002.smil")
     data = source.get("hauy_0001.smil")
     data = source.get("hauy_0002.smil")
-    assert isinstance(data, str) is True
+    assert isinstance(data, Document) is True
 
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=1)
     data = source.get("ncc.html")
-    assert isinstance(data, str) is True
-    data = source.get("ncc.html")
-    assert isinstance(data, str) is True
+    assert isinstance(data, Document) is True
     data = source.get("04_Mission_et_valeurs.mp3")
     assert isinstance(data, bytes) is True
-    data = source.get("ncc.html")
-    assert isinstance(data, str) is True
 
 
 def test_buffering():

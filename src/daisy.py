@@ -5,7 +5,7 @@ from typing import List
 
 from loguru import logger
 
-from domlib import Document, DomFactory
+from domlib import Document
 from dtbsource import DtbResource
 
 
@@ -60,16 +60,48 @@ class Text:
     source: DtbResource
     id: str
     reference: Reference
-    content: str = ""
+
+    # Internal attributes
+    _content: str = None
+    _content_type: str = None
 
     # Internal attributes
     _is_loaded: bool = False
 
+    @property
+    def type(self):
+        if self._is_loaded is False:
+            self.get()
+        return self._content_type
+
     def get(self) -> str:
-        logger.debug(f"Loading text from {self.reference.resource}, id is {self.reference.fragment}.")
+        result = ""
+        if self._content is not None:
+            logger.debug(f"Content {self.reference.resource}/{self.reference.fragment} is already present.")
+            return self._content
+        logger.debug(f"Loading text from {self.reference.resource}, fragment id is {self.reference.fragment}.")
         # if self._is_loaded is False:
-        x = self.source.get(self.reference.resource)
-        print(x)
+        data = self.source.get(self.reference.resource)
+        if isinstance(data, Document) is False:
+            logger.error(f"The retrieval attempt of {self.reference.resource} as Document failed.")
+            return result
+        element = data.get_element_by_id(self.reference.fragment)
+        if element is not None:
+            element_name = element.get_name()
+            parent_name = element.get_parent().get_name()
+
+            if element_name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                self._content_type = element_name
+            elif parent_name in ["p", "li"]:
+                self._content_type = parent_name
+
+            self._content = element.get_text()
+            self._is_loaded = True
+            return self._content
+        else:
+            logger.error(f"Could not retrieve element {self.reference.fragment} in the {self.reference.resource} Document.")
+
+        return result
 
 
 @dataclass
@@ -136,6 +168,13 @@ class Smil:
         if not self._is_loaded:
             self.load()
         return self._pars
+
+    def get_full_text(self) -> str:
+        result = []
+        for par in self._pars:
+            result.append(par.text.type + ">" + par.text.get())
+
+        return "\n\n".join(result)
 
     def load(self) -> None:
         """Load a the SMIL file (if not already loaded)."""

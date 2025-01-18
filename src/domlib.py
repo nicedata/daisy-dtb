@@ -7,6 +7,7 @@ from typing import Dict, List, Union
 from urllib.error import HTTPError, URLError
 from xml.dom.minidom import Document as XdmDocument
 from xml.dom.minidom import Element as XdmElement
+from xml.dom.minidom import Node as XdmNode
 from xml.dom.minidom import parseString
 from xml.parsers.expat import ExpatError
 
@@ -18,7 +19,7 @@ class Element:
     """Representation of a DOM element."""
 
     _node: XdmElement = None  # The node in the xml.dom.minidom referential
-    _children: List["Element"] = field(default_factory=list)  # Child elements
+    _children: "ElementList" = None  # 'ElementList'()  List["Element"] = field(default_factory=list)  # Child elements
 
     def __post_init__(self):
         """Populate the child elements list."""
@@ -35,12 +36,35 @@ class Element:
     def get_value(self) -> str | None:
         return self._node.firstChild.nodeValue if self._node.hasChildNodes() else None
 
+    def _get_text(self, root: "Element", _text: str = "") -> str:
+        """Get text from the root element and its children.
+
+        Note:
+            - This method is recursive.
+            - Do not call directly (private method).
+
+        Args:
+            root (Element): the root element
+            _text (str, optional): the current text. Defaults to "".
+
+        Returns:
+            str: the full string.
+        """
+        for child in root.childNodes:
+            match child.nodeType:
+                case XdmNode.TEXT_NODE:
+                    _text += child.nodeValue
+                case XdmNode.ELEMENT_NODE:
+                    # Recurse here !
+                    _text = self._get_text(child, _text)
+                case _:
+                    ...
+        return _text
+
     def get_text(self) -> str:
         """Returns a string with no carriage returns and duplicate spaces."""
-        if self._node.hasChildNodes():
-            node_value = self._node.firstChild.nodeValue
-            return re.sub(r"\s+", " ", node_value) if node_value else ""
-        return ""
+        text = self._get_text(self._node)
+        return re.sub(r"\s+", " ", text).strip() if len(text) else ""
 
     def get_children(self, tag_name: str = None) -> "ElementList":
         """Get all child elements by tag name (or all if no tag_name is specified)."""
@@ -54,6 +78,10 @@ class Element:
                 result._elements.append(child)
 
         return result
+
+    def get_parent(self) -> Union["Element", None]:
+        """Get the parent element."""
+        return Element(self._node.parentNode)
 
 
 @dataclass

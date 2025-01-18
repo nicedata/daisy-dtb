@@ -12,6 +12,9 @@ SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/sa
 SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../tests/samples/local/vf_2024_02_09")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
+# logger.remove()
+# logger.add(sys.stderr, level="DEBUG")
+
 
 @dataclass
 class TocNavigator(BaseNavigator):
@@ -210,16 +213,18 @@ def test_dtb(dtb: DaisyDtb) -> None:
     entry = nav.next()
 
     smil = entry.smil
-    smil.load()
+    # smil.load()
 
     smilnav = BaseNavigator(smil.pars)
 
     item: Parallel = smilnav.first()
-    while item is not None:
-        # print(item.text.get())
-        item = smilnav.next()
 
-    return
+    print(smil.get_full_text())
+
+    # while item is not None:
+    #     item.text.get()
+    #     print(item.text)
+    #     item = smilnav.next()
 
 
 def main():
