@@ -1,12 +1,11 @@
 import os
 from dataclasses import dataclass
-from pprint import pprint
 from typing import List, override
 
 from loguru import logger
 
 from base_navigator import BaseNavigator
-from daisy import DaisyDtb, NccEntry, Parallel, Smil
+from daisy import DaisyDtb, NccEntry, Parallel
 from dtbsource import DtbResource, FolderDtbResource
 
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
@@ -221,79 +220,6 @@ def test_dtb(dtb: DaisyDtb) -> None:
         item = smilnav.next()
 
     return
-    print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
-    nav.increase_nav_level()
-    print(nav.get_nav_level())
-
-    entry = nav.first()
-    entry = nav.next()
-    return
-    while entry is not None:
-        print(entry.id, " -> ", entry.level)
-        entry = nav.next()
-
-    return
-
-    entry = nav.navigate_to("rgn_ncc_0056")
-    entry = nav.first()
-
-    smilnav = BaseNavigator(dtb.smils)
-    smil = smilnav.first()
-    while smil is not None:
-        smil = smilnav.next()
-
-    return
-
-    nav.first_entry()
-    entry = nav.next_entry()
-
-    smil = entry.smil
-
-    smilnav = SmilNavigator(smil)
-    par = smilnav.navigate_to("rgn_par_0002_0008")
-    pprint(par)
-    return
-
-    par = smilnav.first_par()
-    par = smilnav.next_par()
-
-    clipnav = ClipNavigator(par)
-    print(clipnav)
-
-    return
-    while par is not None:
-        pprint(par)
-        par = smilnav.next_par()
-    print("-" * 80)
-    par = smilnav.last_par()
-    while par is not None:
-        pprint(par)
-        par = smilnav.prev_par()
-    return
-
-    return
-
-    for par in smil.pars:
-        for index, audio in enumerate(par.clips):
-            data = dtb.source.get(audio.src)
-            print(index, audio, len(data))
-        print()
-
-    for item in dtb.source.buffer._items:
-        print(item.name)
-
-    return
-
-    for entry in dtb.entries:
-        print(entry.smil_reference, entry.text)
-        smil = Smil(dtb.source, entry.smil_reference)
-        index: int = None
-        try:
-            index = dtb.smils.index(smil)
-        except ValueError:
-            ...
-        if index is not None:
-            dtb.smils[index].load()
 
 
 def main():

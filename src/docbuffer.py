@@ -34,9 +34,11 @@ class DocBuffer:
 
         document = DomFactory.create_document_from_string(data)
         if document is None:
+            logger.debug("Could not create a Document from the supplied data.")
             return None
 
         self._items.append(DocBufferItem(name, document))
+        logger.debug(f"A new Document ({name}) has been added.")
         return document
 
     def get(self, name: str) -> Union[Document, None]:
@@ -48,4 +50,4 @@ class DocBuffer:
             return None
 
         logger.debug(f"Item {name} found in the buffer.")
-        return self._items[index]
+        return self._items[index].document

@@ -5,6 +5,7 @@ The book may be in a folder (filesystem) or in a remote location (website).
 
 """
 
+from typing import Union
 import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
@@ -14,6 +15,8 @@ from urllib.error import HTTPError, URLError
 
 from loguru import logger
 
+from docbuffer import DocBuffer
+from domlib import Document
 from resourcebuffer import ResourceBuffer, ResourceBufferItem
 
 
@@ -37,8 +40,10 @@ class DtbResource(ABC):
         self.buffer = ResourceBuffer()
         self.buffer.set_size(buffer_size)
 
+        self.docbuffer = DocBuffer()
+
     @abstractmethod
-    def get(self, resource_name: str) -> bytes | str | None:
+    def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
         """Get data and return it as a byte array or a string, or None in case of an error.
 
         When the resource is buffered
@@ -53,7 +58,7 @@ class DtbResource(ABC):
         """
         raise NotImplementedError
 
-    def _convert_data(self, data: bytes) -> bytes | str:
+    def _convert_data(self, data: bytes) -> Union[bytes, str]:
         """Convert `bytes` to a `str` if possible.
 
         Args:
@@ -108,13 +113,13 @@ class FolderDtbResource(DtbResource):
         if error:
             raise FileNotFoundError
 
-    def get(self, resource_name: str) -> bytes | str | None:
+    def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
         path = f"{self.resource_base}{resource_name}"
 
         # Try to get data from the buffered resources
         buffered_resource = self.buffer.get(resource_name)
         if buffered_resource is not None:
-            return self._convert_data(buffered_resource.data)
+            return buffered_resource.data
 
         if self.is_web_resource:  # Get the data from the web
             try:
@@ -135,10 +140,10 @@ class FolderDtbResource(DtbResource):
                 return None
 
         # Buffer the resource
-        self._convert_data(data)
-        self.buffer.add(ResourceBufferItem(resource_name, data))
+        item = ResourceBufferItem(resource_name, data)
+        self.buffer.add(item)
 
-        return self._convert_data(data)
+        return item.data
 
 
 class ZipDtbResource(DtbResource):

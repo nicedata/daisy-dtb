@@ -1,18 +1,45 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Union
 
 from loguru import logger
 
+from domlib import Document, DomFactory
 
-@dataclass(frozen=True)
+
+def _convert_data(data: bytes) -> bytes | str:
+    """Convert `bytes` to a `str` if possible.
+    Args:
+        data (bytes): the input bytes.
+    Returns:
+        bytes | str: the returned str (or bytes).
+    """
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data
+
+
+@dataclass
 class ResourceBufferItem:
     """This class represents a buffered resource."""
 
     name: str
-    data: bytes | str = None
+    data: Union[bytes, str, Document] = None
+    data_type: str = None
 
     def __post_init__(self):
-        logger.debug(f"Data type is {type(self.data)}")
+        try:
+            self.data = self.data.decode("utf-8")
+        except UnicodeDecodeError:
+            ...
+
+        if isinstance(self.data, str):
+            document = DomFactory.create_document_from_string(self.data)
+            if document is not None:
+                self.data = document
+                logger.debug(f"A document has been created from {self.name}.")
+        self.data_type = type(self.data)
+        logger.debug(f"Data type is {self.data_type}")
 
 
 @dataclass

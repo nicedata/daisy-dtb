@@ -5,7 +5,7 @@ from typing import List
 
 from loguru import logger
 
-from domlib import DomFactory
+from domlib import Document, DomFactory
 from dtbsource import DtbResource
 
 
@@ -145,24 +145,23 @@ class Smil:
 
         # Get the resource data
         data = self.source.get(self.reference.resource)
+
         if data is None:
             logger.debug(f"Could not get SMIL {self.reference.resource}.")
             return
 
-        # Prepare a document
-        document = DomFactory.create_document_from_string(data)
-        if document is None:
-            logger.debug(f"Could not create a document from {self.reference.resource}.")
+        if not isinstance(data, Document):
+            logger.debug(f"No Document to process ({self.reference.resource}).")
             return
 
         # Title
-        elt = document.get_elements_by_tag_name("meta", {"name": "dc:title"}).first()
+        elt = data.get_elements_by_tag_name("meta", {"name": "dc:title"}).first()
         if elt:
             self.title = elt.get_attr("content")
             logger.debug(f"SMIL {self.reference.resource} title set : {self.title}s.")
 
         # Total duration
-        elt = document.get_elements_by_tag_name("meta", {"name": "ncc:timeInThisSmil"}).first()
+        elt = data.get_elements_by_tag_name("meta", {"name": "ncc:timeInThisSmil"}).first()
         if elt:
             duration = elt.get_attr("content")
             h, m, s = duration.split(":")
@@ -170,7 +169,7 @@ class Smil:
             logger.debug(f"SMIL {self.reference.resource} duration set : {self.total_duration}s.")
 
         # Process sequences in body
-        for body_seq in document.get_elements_by_tag_name("seq", having_parent_tag_name="body").all():
+        for body_seq in data.get_elements_by_tag_name("seq", having_parent_tag_name="body").all():
             # Process the <par/> element in the sequence
             for par in body_seq.get_children("par").all():
                 par_id = par.get_attr("id")
@@ -216,7 +215,7 @@ class DaisyDtb:
         data = self.source.get("ncc.html")
 
         # No data, no further processing !
-        if data is None:
+        if data is None or not isinstance(data, Document):
             return
 
         # Populate the entries list
@@ -230,16 +229,16 @@ class DaisyDtb:
 
         self.is_valid = True
 
-    def _populate_metadata(self, data: str) -> None:
+    def _populate_metadata(self, data: Document) -> None:
         """Process and store all metadata."""
-        for element in DomFactory.create_document_from_string(data).get_elements_by_tag_name("meta").all():
+        for element in data.get_elements_by_tag_name("meta").all():
             name = element.get_attr("name")
             if name:
                 self.metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
 
-    def _populate_entries(self, data: str):
+    def _populate_entries(self, data: Document):
         """Process and store the NCC entries (hx tags)."""
-        body = DomFactory.create_document_from_string(data).get_elements_by_tag_name("body").first()
+        body = data.get_elements_by_tag_name("body").first()
         for element in body.get_children().all():
             element_name = element.get_name()
             if element_name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
