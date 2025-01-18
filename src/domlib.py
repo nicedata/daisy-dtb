@@ -3,7 +3,7 @@
 import re
 import urllib.request
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Union
 from urllib.error import HTTPError, URLError
 from xml.dom.minidom import Document as XdmDocument
 from xml.dom.minidom import Element as XdmElement
@@ -84,14 +84,14 @@ class Document:
 
     _root: XdmDocument = None
 
-    def get_element_by_id(self, id: str) -> Element | None:
+    def get_element_by_id(self, id: str) -> Union[Element, None]:
         """Get an element by its id"""
         for elt in self._root.getElementsByTagName("*"):
             if elt.getAttribute("id") == id:
                 return Element(_node=elt)
         return None
 
-    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, having_parent_tag_name: str = None) -> ElementList | None:
+    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, having_parent_tag_name: str = None) -> Union[ElementList, None]:
         """
         Get elements by tag name.
 
@@ -138,7 +138,7 @@ class DomFactory:
     """This class holds a collection of static methods to create class instances."""
 
     @staticmethod
-    def create_document_from_string(string: str) -> Document | None:
+    def create_document_from_string(string: str) -> Union[Document, None]:
         """Create a Document from a string.
         Args:
             string (str): The string to parse
@@ -154,7 +154,7 @@ class DomFactory:
         return Document(_root=xdm_document)
 
     @staticmethod
-    def create_document_from_url(url: str) -> Document | None:
+    def create_document_from_url(url: str) -> Union[Document, None]:
         """Create a Document from an URL.
         Args:
             url (str): The URL to parse

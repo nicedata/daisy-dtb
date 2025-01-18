@@ -1,13 +1,11 @@
-"""Definition of `BasicNavigator` whis is to be used to implement book navigation."""
+"""Definition of `BaseNavigator` which allows to navigate in a list of elements."""
 
-from typing import List, Union
+from typing import Any, List, Union
 
 from loguru import logger
 
-from daisy import Audio, NccEntry, Parallel
 
-
-class BasicNavigator:
+class BaseNavigator:
     """
     This class implements basic metods to navigate in a list of items.
 
@@ -26,11 +24,11 @@ class BasicNavigator:
           If the method fails, no exception is raised, but it simply returns None.
     """
 
-    def __init__(self, items: List[Union[NccEntry, Parallel, Audio]]) -> None:
+    def __init__(self, items: List[Any]) -> None:
         """Instanciate a `BasicNavigator` class.
 
         Args:
-            items (List[Union[NccEntry, Parallel, Audio]]): a list of elements related to the digital talking book.
+            items (List[Any]]): a list of elements.
 
         Raises:
             ValueError: if the supplied list is not iterable
@@ -61,86 +59,89 @@ class BasicNavigator:
 
         # Internal attriutes
         self._items = items
+        self._id_list: List = None
         self._current_index = 0
         self._max_index = len(self._items) - 1
+        logger.debug(f"{type(self)} instance created with {len(self._items)} element(s) of type {items_type}.")
 
-    def first(self) -> Union[NccEntry, Parallel, Audio]:
+        # Populate the list of ids if the attribute exists
+        is_id_attribute_present = "id" in dict(items[0]).keys() if hasattr(items_type, "keys") else hasattr(items[0], "id")
+        if is_id_attribute_present:
+            if hasattr(items_type, "keys"):
+                self._id_list = [_["id"] for _ in self._items]
+            else:
+                self._id_list = [getattr(_, "id") for _ in self._items]
+
+    def first(self) -> Any:
+        """"""
         """Go to the first item.
 
         Returns:
-            Union[NccEntry, Parallel, Audio]: the first item in the list.
+            Any: the first item in the list.
         """
         self._current_index = 0
         return self._items[self._current_index]
 
-    def next(self) -> Union[NccEntry, Parallel, Audio, None]:
+    def next(self) -> Union[Any, None]:
         """Go to the next item.
 
         Returns:
-            Union[NccEntry, Parallel, Audio, None]: the next item in the list.
+            Union[Any, None]: the next item in the list or None if no next item.
         """
         if self._current_index + 1 < self._max_index:
             self._current_index = self._current_index + 1
             return self._items[self._current_index]
         return None
 
-    def prev(self) -> Union[NccEntry, Parallel, Audio, None]:
+    def prev(self) -> Union[Any, None]:
         """Go to the previous item.
 
         Returns:
-            Union[NccEntry, Parallel, Audio, None]: the previous item in the list.
+            Union[Any, None]: the previous item in the list or None if no previous item.
         """
         if self._current_index - 1 >= 0:
             self._current_index = self._current_index - 1
             return self._items[self._current_index]
         return None
 
-    def last(self) -> NccEntry | Parallel | Audio:
+    def last(self) -> Any:
         """Go to the last item.
 
         Returns:
-            Union[NccEntry, Parallel, Audio]: the previous item in the list.
+            Any: the previous item in the list.
         """
         self._current_index = self._max_index
         return self._items[self._current_index]
 
-    def current(self) -> Union[NccEntry, Parallel, Audio]:
+    def current(self) -> Any:
         """Get the current item.
 
         Returns:
-            Union[NccEntry, Parallel, Audio]: the current item.
+            Any: the current item.
         """
         return self._items[self._current_index]
 
-    def navigate_to(self, item_id: str | int) -> Union[NccEntry, Parallel, Audio, None]:
+    def navigate_to(self, item_id: str | int) -> Union[Any, None]:
         """Navigate to a specific item based on its id.
 
         Note :
-            - If the item has no 'id' attribute, the method does nothing.
+            - If the item has no 'id' attribute, the method does nothing and returns None.
 
         Args:
             item_id (str): the searched item id
 
         Returns:
-            Union[NccEntry, Parallel, Audio, None]: te returned item.
+            Union[Any, None]: the targeted item item or None.
         """
-        # Do we have classes or dicts ?
-        is_class_list = True
-        try:
-            vars(self._items[0])  # This fails on a dict !
-        except TypeError:
-            is_class_list = False
+        # Can we search by id ?
+        if self._id_list is None:
+            logger.debug("There is no id attribute present in the list items")
+            return None
 
         try:
-            if is_class_list:
-                index = [_.id for _ in self._items].index(item_id)
-            else:
-                index = [_["id"] for _ in self._items].index(item_id)
-            logger.debug(f"Item with id {item_id} found.")
-            return self._items[index]
+            result = self._items[self._id_list.index(item_id)]
+            logger.debug(f"Item with id {item_id} of type {type(result)} found.")
+            return result
         except ValueError:
             logger.debug(f"Item with id {item_id} not found.")
-            return None
-        except (AttributeError, KeyError):
-            logger.debug("One of the items in the list has no id attribute.")
             return None

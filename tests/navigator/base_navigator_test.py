@@ -1,6 +1,6 @@
 import pytest
 
-from basic_navigator import BasicNavigator
+from base_navigator import BaseNavigator
 
 
 class TestItemWithId:
@@ -65,26 +65,26 @@ def test_init():
     """Test BasicNavigator class intanciation"""
     # Fail : the argument is not a list
     with pytest.raises(ValueError):
-        BasicNavigator("1234")
+        BaseNavigator("1234")
 
     # Fail : the argument is an empty list
     with pytest.raises(ValueError):
-        BasicNavigator([])
+        BaseNavigator([])
 
     # Fail : mixed element types in the list
     with pytest.raises(ValueError):
-        BasicNavigator(CLASS_LIST_MIXED)
+        BaseNavigator(CLASS_LIST_MIXED)
 
     # Success : the list is OK
-    nav = BasicNavigator(["A", "B", "C"])
-    assert isinstance(nav, BasicNavigator)
+    nav = BaseNavigator(["A", "B", "C"])
+    assert isinstance(nav, BaseNavigator)
 
 
 def test_dict_with_id_list_navigation():
     """Test navigation using a dict list (with an id attribute)"""
 
-    nav = BasicNavigator(DICT_LIST_WITH_ID)
-    assert isinstance(nav, BasicNavigator)
+    nav = BaseNavigator(DICT_LIST_WITH_ID)
+    assert isinstance(nav, BaseNavigator)
 
     # Get the first element
     assert nav.first() == DICT_LIST_WITH_ID[0]
@@ -108,14 +108,16 @@ def test_dict_with_id_list_navigation():
     assert nav.prev() == DICT_LIST_WITH_ID[4]
 
     # Navigate to the element with id=3
+    item = nav.navigate_to(3)
+    print("XXXA", item)
     assert nav.navigate_to(3) == DICT_LIST_WITH_ID[2]
 
 
 def test_dict_without_id_list_navigation():
     """Test navigation using a dict list (with NO id attribute)"""
 
-    nav = BasicNavigator(DICT_LIST_WITHOUT_ID)
-    assert isinstance(nav, BasicNavigator)
+    nav = BaseNavigator(DICT_LIST_WITHOUT_ID)
+    assert isinstance(nav, BaseNavigator)
 
     # Get the first element
     assert nav.first() == DICT_LIST_WITHOUT_ID[0]
@@ -145,8 +147,8 @@ def test_dict_without_id_list_navigation():
 def test_class_with_id_list_navigation():
     """Test navigation using a class list (with an id attribute)"""
 
-    nav = BasicNavigator(CLASS_LIST_WITH_ID)
-    assert isinstance(nav, BasicNavigator)
+    nav = BaseNavigator(CLASS_LIST_WITH_ID)
+    assert isinstance(nav, BaseNavigator)
 
     # Get the first element
     assert nav.first() == CLASS_LIST_WITH_ID[0]
@@ -176,8 +178,8 @@ def test_class_with_id_list_navigation():
 def test_class_without_id_list_navigation():
     """Test navigation using a class list (with NO id attribute)"""
 
-    nav = BasicNavigator(CLASS_LIST_WITHOUT_ID)
-    assert isinstance(nav, BasicNavigator)
+    nav = BaseNavigator(CLASS_LIST_WITHOUT_ID)
+    assert isinstance(nav, BaseNavigator)
 
     # Get the first element
     assert nav.first() == CLASS_LIST_WITHOUT_ID[0]

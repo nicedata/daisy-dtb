@@ -38,17 +38,17 @@ class NccEntry:
     level: int
     smil_reference: Reference
     text: str
-    _smil: "NewSmil" = None
+    _smil: "Smil" = None
 
     @property
-    def smil(self) -> "NewSmil":
+    def smil(self) -> "Smil":
         """Get the attached smil. Load it if needed.
 
         Returns:
             NewSmil: The attached smil.
         """
         if self._smil is None:
-            self._smil = NewSmil(self.source, self.smil_reference)
+            self._smil = Smil(self.source, self.smil_reference)
             logger.debug(f"Smil set from {self.smil_reference}")
         return self._smil
 
@@ -57,9 +57,19 @@ class NccEntry:
 class Text:
     """Representation of a text fragment in a text source file."""
 
+    source: DtbResource
     id: str
     reference: Reference
     content: str = ""
+
+    # Internal attributes
+    _is_loaded: bool = False
+
+    def get(self) -> str:
+        logger.debug(f"Loading text from {self.reference.resource}, id is {self.reference.fragment}.")
+        # if self._is_loaded is False:
+        x = self.source.get(self.reference.resource)
+        print(x)
 
 
 @dataclass
@@ -100,13 +110,14 @@ class Parallel:
     Objects inside the <par> element will be played at the same time (in parallel).
     """
 
+    source: DtbResource
     id: str
     text: Text
     clips: List[Audio] = field(default_factory=list)
 
 
 @dataclass
-class NewSmil:
+class Smil:
     """This class represents a SMIL file."""
 
     source: DtbResource
@@ -168,8 +179,8 @@ class NewSmil:
                 text = par.get_children("text").first()
                 id = text.get_attr("id")
                 src, frag = text.get_attr("src").split("#")
-                current_text = Text(id, Reference(src, frag), text.get_value())
-                current_par = Parallel(par_id, current_text)
+                current_text = Text(self.source, id, Reference(src, frag))
+                current_par = Parallel(self.source, par_id, current_text)
 
                 # Handle the <audio/> clip
                 for par_seq in par.get_children("seq").all():
@@ -197,7 +208,7 @@ class DaisyDtb:
     source: DtbResource
     metadata: List[MetaData] = field(default_factory=list)
     entries: List[NccEntry] = field(default_factory=list)
-    smils: List[NewSmil] = field(default_factory=list)
+    smils: List[Smil] = field(default_factory=list)
     is_valid: bool = False
 
     def __post_init__(self):
@@ -241,7 +252,7 @@ class DaisyDtb:
 
     def _populate_smils(self):
         for entry in self.entries:
-            smil = NewSmil(self.source, entry.smil_reference)
+            smil = Smil(self.source, entry.smil_reference)
             self.smils.append(smil)
 
     def get_title(self) -> str:

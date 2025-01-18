@@ -11,6 +11,9 @@ class ResourceBufferItem:
     name: str
     data: bytes | str = None
 
+    def __post_init__(self):
+        logger.debug(f"Data type is {type(self.data)}")
+
 
 @dataclass
 class ResourceBuffer:

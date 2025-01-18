@@ -135,6 +135,7 @@ class FolderDtbResource(DtbResource):
                 return None
 
         # Buffer the resource
+        self._convert_data(data)
         self.buffer.add(ResourceBufferItem(resource_name, data))
 
         return self._convert_data(data)

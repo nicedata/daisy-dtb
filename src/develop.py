@@ -5,16 +5,17 @@ from typing import List, override
 
 from loguru import logger
 
-from basic_navigator import BasicNavigator
-from daisy import DaisyDtb, NccEntry, NewSmil
+from base_navigator import BaseNavigator
+from daisy import DaisyDtb, NccEntry, Parallel, Smil
 from dtbsource import DtbResource, FolderDtbResource
 
-SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
+SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
+SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../tests/samples/local/vf_2024_02_09")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 
 @dataclass
-class TocNavigator(BasicNavigator):
+class TocNavigator(BaseNavigator):
     """
     This class provides method to navigate in table of contents of a digital talking book.
 
@@ -30,8 +31,13 @@ class TocNavigator(BasicNavigator):
     _current_nav_level: int = 0
 
     def __post_init__(self):
+        """Postinitialitation of the dataclass.
+        - Initialize the base class
+        - Set the max. navigation level
+        """
         super().__init__(self.dtb.entries)
         self._max_nav_level = self.dtb.get_depth()
+        logger.debug(f"Initialization of class {type(self)} done. Max. naigation level is {self._max_nav_level}.")
 
     @property
     def nav_filter_is_active(self) -> bool:
@@ -93,7 +99,7 @@ class TocNavigator(BasicNavigator):
         Returns:
             NccEntry: the first entry
         """
-        item = super().first()
+        item: NccEntry = super().first()
 
         if self.nav_filter_is_active:
             # Enumerate upwards
@@ -112,7 +118,7 @@ class TocNavigator(BasicNavigator):
         Returns:
             NccEntry: the last entry
         """
-        item = super().last()
+        item: NccEntry = super().last()
         if self.nav_filter_is_active:
             while item is not None:
                 if item.level == self._current_nav_level:
@@ -129,7 +135,7 @@ class TocNavigator(BasicNavigator):
         Returns:
             NccEntry: the next entry
         """
-        item = super().next()
+        item: NccEntry = super().next()
         if self.nav_filter_is_active:
             while item is not None:
                 if item.level == self._current_nav_level:
@@ -146,7 +152,7 @@ class TocNavigator(BasicNavigator):
         Returns:
             NccEntry: the previous entry
         """
-        item = super().prev()
+        item: NccEntry = super().prev()
         if self.nav_filter_is_active:
             while item is not None:
                 if item.level == self._current_nav_level:
@@ -166,6 +172,10 @@ class TocNavigator(BasicNavigator):
         Args:
             format (str): the requested format
 
+        Raises:
+            ValueError: raised when a format is not handled.
+
+
         Returns:
             str: the formatted TOC
         """
@@ -183,24 +193,10 @@ class TocNavigator(BasicNavigator):
             case "html-headers":
                 for entry in self.dtb.entries:
                     result += f"<h{(entry.level)}>{entry.text}</h{(entry.level)}>\n"
+            case _:
+                raise ValueError(f"Invalid format ({format}).")
 
         return result
-
-
-TEST_LIST_A = [
-    {"id": 1, "value": "1"},  # 0
-    {"id": 2, "value": "2"},  # 1
-    {"id": 3, "value": "3"},  # 2
-    {"id": 4, "value": "4"},  # 3
-    {"id": 5, "value": "5"},  # 4
-    {"id": 6, "value": "6"},  # 5
-]
-
-
-def test_dict_list():
-    nav = BasicNavigator(TEST_LIST_A)
-    item = nav.navigate_to(3)
-    print(item)
 
 
 def test_dtb(dtb: DaisyDtb) -> None:
@@ -210,10 +206,19 @@ def test_dtb(dtb: DaisyDtb) -> None:
     dtb.source.resize_buffer(20)
 
     nav = TocNavigator(dtb)
-    entry = nav.first()
 
-    item = nav.navigate_to("rgn_ncc_0009")
-    print(item)
+    entry = nav.first()
+    entry = nav.next()
+
+    smil = entry.smil
+    smil.load()
+
+    smilnav = BaseNavigator(smil.pars)
+
+    item: Parallel = smilnav.first()
+    while item is not None:
+        # print(item.text.get())
+        item = smilnav.next()
 
     return
     print(f"Entries : {len(dtb.entries)}, Smils: {len(dtb.smils)}, Depth: {dtb.get_depth()}")
@@ -232,7 +237,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
     entry = nav.navigate_to("rgn_ncc_0056")
     entry = nav.first()
 
-    smilnav = BasicNavigator(dtb.smils)
+    smilnav = BaseNavigator(dtb.smils)
     smil = smilnav.first()
     while smil is not None:
         smil = smilnav.next()
@@ -281,7 +286,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
 
     for entry in dtb.entries:
         print(entry.smil_reference, entry.text)
-        smil = NewSmil(dtb.source, entry.smil_reference)
+        smil = Smil(dtb.source, entry.smil_reference)
         index: int = None
         try:
             index = dtb.smils.index(smil)
@@ -291,32 +296,10 @@ def test_dtb(dtb: DaisyDtb) -> None:
             dtb.smils[index].load()
 
 
-def test(source: DtbResource) -> None:
-    logger.info(f"Working on {source.resource_base}")
-    logger.info(f"Source class is {source.__class__.__name__}")
-    logger.info(f"Source {source.resource_base} is OK")
-
-    dtb = DaisyDtb(source)
-    logger.info(f"The DTB was correctly loaded: {dtb.is_valid}")
-    logger.info(f"Metadata count: {len(dtb.metadata)}")
-    logger.info(f"Ncc entries count: {len(dtb.entries)}")
-    logger.info(f"Smil count: {len(dtb.smils)}")
-
-    # for smil in dtb.smils:
-    #     logger.info(f"Loading smil {smil.reference.resource} ...")
-    #     smil.load()
-    #     logger.info(f"Smil {smil.reference.resource} - Loaded {'OK' if smil.is_loaded else 'KO'}")
-    logger.info(f"Finished working on {source.resource_base}\n")
-
-    test_dtb(dtb)
-
-
 def main():
-    test_dict_list()
-
     """Perform tests"""
-    paths = [SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL]
-    paths = [SAMPLE_DTB_PROJECT_PATH]
+    paths = [SAMPLE_DTB_PROJECT_PATH_1, SAMPLE_DTB_PROJECT_PATH_2, SAMPLE_DTB_PROJECT_URL]
+    paths = [SAMPLE_DTB_PROJECT_PATH_2]
     sources: List[DtbResource] = []
 
     for path in paths:
