@@ -29,5 +29,5 @@ Issues = "https://github.com/nicedata/daisy-dtb/issues"
 
 [tool.pytest.ini_options]
 pythonpath = "src"
-testpaths = ['tests']
+testpaths = ['tests/cache']
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

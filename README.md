@@ -1,4 +1,8 @@
-# A library to deal with Daisy 2.02 digital talking books
+# A package to deal with Daisy 2.02 digital talking books
+
+Daisy 2.02 is ...
+
+Since we work on some digital talking book applications, 
 
 ## Warning
 

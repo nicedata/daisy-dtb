@@ -3,7 +3,7 @@ from domlib import Document
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
-from resourcebuffer import ResourceBuffer, ResourceBufferItem
+from cache import Cache, CacheItem
 
 
 def test_source_fail():
@@ -140,25 +140,25 @@ def test_source_get_with_buffering():
 
 
 def test_buffering():
-    buffer = ResourceBuffer(5)
+    buffer = Cache(5)
 
     items = [
-        ResourceBufferItem("item1", b"123"),
-        ResourceBufferItem("item2", b"444"),
-        ResourceBufferItem("item1", b"456"),
-        ResourceBufferItem("item3", "string 4"),
-        ResourceBufferItem("item4", "string 5"),
-        ResourceBufferItem("item5", "string 6"),
-        ResourceBufferItem("item6", "string 7"),
-        ResourceBufferItem("item7", b"string 8"),
+        CacheItem("item1", b"123"),
+        CacheItem("item2", b"444"),
+        CacheItem("item1", b"456"),
+        CacheItem("item3", "string 4"),
+        CacheItem("item4", "string 5"),
+        CacheItem("item5", "string 6"),
+        CacheItem("item6", "string 7"),
+        CacheItem("item7", b"string 8"),
     ]
 
-    assert buffer.get_size() == 5
+    assert buffer.get_current_size() == 5
     for item in items:
         buffer.add(item)
 
-    buffer.set_size(10)
-    assert buffer.get_size() == 10
+    buffer.set_max_size(10)
+    assert buffer.get_current_size() == 10
     for item in items:
         buffer.add(item)
 

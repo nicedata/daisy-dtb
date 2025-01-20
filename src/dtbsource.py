@@ -17,7 +17,7 @@ from loguru import logger
 
 from docbuffer import DocBuffer
 from domlib import Document
-from resourcebuffer import ResourceBuffer, ResourceBufferItem
+from cache import Cache, CacheItem
 
 
 class DtbResource(ABC):
@@ -37,8 +37,8 @@ class DtbResource(ABC):
 
         self.resource_base = resource_base
 
-        self.buffer = ResourceBuffer()
-        self.buffer.set_size(buffer_size)
+        self.buffer = Cache()
+        self.buffer.set_max_size(buffer_size)
 
         self.docbuffer = DocBuffer()
 
@@ -78,16 +78,16 @@ class DtbResource(ABC):
         Args:
             new_size (int): the new size.
         """
-        if new_size == self.buffer.get_size():
+        if new_size == self.buffer.get_current_size():
             logger.debug("Buffer not resized. No change in buffer size.")
             return
 
         if new_size >= 0:
-            self.buffer.set_size(new_size)
-            logger.debug(f"Buffer resized to hold {self.buffer.get_size()} items")
+            self.buffer.set_max_size(new_size)
+            logger.debug(f"Buffer resized to hold {self.buffer.get_current_size()} items")
 
     def get_buffer_size(self):
-        return self.buffer.get_size()
+        return self.buffer.get_current_size()
 
 
 class FolderDtbResource(DtbResource):
@@ -140,7 +140,7 @@ class FolderDtbResource(DtbResource):
                 return None
 
         # Buffer the resource
-        item = ResourceBufferItem(resource_name, data)
+        item = CacheItem(resource_name, data)
         self.buffer.add(item)
 
         return item.data
