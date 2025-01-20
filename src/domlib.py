@@ -1,4 +1,4 @@
-"""Classes to encapsulate and simplyfies the usage of the xml.dom.minidom library."""
+"""Classes to encapsulate and simply the usage of the xml.dom.minidom library."""
 
 import re
 import urllib.request

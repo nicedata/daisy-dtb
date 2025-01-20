@@ -63,16 +63,9 @@ class Text:
 
     # Internal attributes
     _content: str = None
-    _content_type: str = None
 
     # Internal attributes
     _is_loaded: bool = False
-
-    @property
-    def type(self):
-        if self._is_loaded is False:
-            self.get()
-        return self._content_type
 
     def get(self) -> str:
         result = ""
@@ -80,21 +73,14 @@ class Text:
             logger.debug(f"Content {self.reference.resource}/{self.reference.fragment} is already present.")
             return self._content
         logger.debug(f"Loading text from {self.reference.resource}, fragment id is {self.reference.fragment}.")
-        # if self._is_loaded is False:
+
         data = self.source.get(self.reference.resource)
         if isinstance(data, Document) is False:
             logger.error(f"The retrieval attempt of {self.reference.resource} as Document failed.")
             return result
+
         element = data.get_element_by_id(self.reference.fragment)
         if element is not None:
-            element_name = element.get_name()
-            parent_name = element.get_parent().get_name()
-
-            if element_name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
-                self._content_type = element_name
-            elif parent_name in ["p", "li"]:
-                self._content_type = parent_name
-
             self._content = element.get_text()
             self._is_loaded = True
             return self._content
@@ -171,22 +157,24 @@ class Smil:
 
     def get_full_text(self) -> str:
         result = []
+        if self._is_loaded is False:
+            self.load()
         for par in self._pars:
-            result.append(par.text.type + ">" + par.text.get())
+            result.append(par.text.get())
 
         return "\n\n".join(result)
 
     def load(self) -> None:
         """Load a the SMIL file (if not already loaded)."""
         if self._is_loaded:
-            logger.debug(f"SMIL {self.reference.resource} is already loaded.")
+            logger.debug(f"SMIL '{self.reference.resource}' is already loaded.")
             return
 
         # Get the resource data
         data = self.source.get(self.reference.resource)
 
         if data is None:
-            logger.debug(f"Could not get SMIL {self.reference.resource}.")
+            logger.debug(f"Could not get SMIL '{self.reference.resource}'.")
             return
 
         if not isinstance(data, Document):
@@ -197,7 +185,7 @@ class Smil:
         elt = data.get_elements_by_tag_name("meta", {"name": "dc:title"}).first()
         if elt:
             self.title = elt.get_attr("content")
-            logger.debug(f"SMIL {self.reference.resource} title set : {self.title}s.")
+            logger.debug(f"SMIL '{self.reference.resource}' title set : '{self.title}'.")
 
         # Total duration
         elt = data.get_elements_by_tag_name("meta", {"name": "ncc:timeInThisSmil"}).first()

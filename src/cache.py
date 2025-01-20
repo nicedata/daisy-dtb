@@ -39,7 +39,7 @@ class CacheItem:
             document = DomFactory.create_document_from_string(self.__data)
             if document is not None:
                 self.__data = document
-                logger.debug(f"A document has been created from {self.name}.")
+                logger.debug(f"A document has been created from '{self.__name}'.")
         logger.debug(f"The cache item '{self.__name}' has been created. Its type is {self.get_type()}.")
 
     def get_type(self) -> type:

@@ -109,7 +109,6 @@ def test_dict_with_id_list_navigation():
 
     # Navigate to the element with id=3
     item = nav.navigate_to(3)
-    print("XXXA", item)
     assert nav.navigate_to(3) == DICT_LIST_WITH_ID[2]
 
 

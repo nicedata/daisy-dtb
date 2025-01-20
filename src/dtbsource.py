@@ -5,42 +5,38 @@ The book may be in a folder (filesystem) or in a remote location (website).
 
 """
 
-from typing import Union
 import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
 from io import BytesIO
 from pathlib import Path
+from typing import Union
 from urllib.error import HTTPError, URLError
 
 from loguru import logger
 
-from docbuffer import DocBuffer
-from domlib import Document
 from cache import Cache, CacheItem
+from domlib import Document
 
 
 class DtbResource(ABC):
-    def __init__(self, resource_base: str, buffer_size=0) -> None:
+    def __init__(self, resource_base: str, initial_cache_size=0) -> None:
         """Creates a new `DtbResource`.
 
         Args:
             resource_base (str): a filesystem folder or a web site
-            buffer_size (int, optional): the size of the resource buffer. Defaults to 0.
+            initial_cache_size (int, optional): the size of the resource buffer. Defaults to 0.
 
         Raises:
-            ValueError: if the requested buffer size is less than 0.
+            ValueError: if the requested cache size is less than 0.
         """
-
-        if buffer_size < 0:
-            raise ValueError("The buffer size cannot be negative.")
+        if initial_cache_size < 0:
+            raise ValueError("The cache size cannot be negative.")
 
         self.resource_base = resource_base
-
-        self.buffer = Cache()
-        self.buffer.set_max_size(buffer_size)
-
-        self.docbuffer = DocBuffer()
+        self.cache = Cache(max_size=initial_cache_size)
+        self.cache_queries: int = 0
+        self.cache_hits: int = 0
 
     @abstractmethod
     def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
@@ -72,29 +68,35 @@ class DtbResource(ABC):
         except UnicodeDecodeError:
             return data
 
-    def resize_buffer(self, new_size: int) -> None:
+    def resize_cache(self, new_size: int) -> None:
         """Resize the resource buffer.
 
         Args:
             new_size (int): the new size.
         """
-        if new_size == self.buffer.get_current_size():
+        if new_size == self.cache.get_max_size():
             logger.debug("Buffer not resized. No change in buffer size.")
             return
 
         if new_size >= 0:
-            self.buffer.set_max_size(new_size)
-            logger.debug(f"Buffer resized to hold {self.buffer.get_current_size()} items")
+            self.cache.set_max_size(new_size)
+            logger.debug(f"Buffer resized to hold {self.cache.get_max_size()} items")
 
-    def get_buffer_size(self):
-        return self.buffer.get_current_size()
+    def get_cache_size(self) -> int:
+        return self.cache.get_max_size()
+
+    def get_cache_queries(self) -> int:
+        return self.cache_queries
+
+    def get_cache_hits(self) -> int:
+        return self.cache_hits
 
 
 class FolderDtbResource(DtbResource):
     """This class gets data from a filesystem folder or a web location"""
 
-    def __init__(self, resource_base: str, buffer_size=0) -> None:
-        super().__init__(resource_base, buffer_size)
+    def __init__(self, resource_base: str, initial_cache_size=0) -> None:
+        super().__init__(resource_base, initial_cache_size)
         self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
         self.is_web_resource: bool = "://" in self.resource_base
         error = False
@@ -116,10 +118,12 @@ class FolderDtbResource(DtbResource):
     def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
         path = f"{self.resource_base}{resource_name}"
 
-        # Try to get data from the buffered resources
-        buffered_resource = self.buffer.get(resource_name)
-        if buffered_resource is not None:
-            return buffered_resource.data
+        # Try to get data from the cached resources
+        self.cache_queries += 1
+        cached_resource = self.cache.get(resource_name)
+        if cached_resource is not None:
+            self.cache_hits += 1
+            return cached_resource.get_data()
 
         if self.is_web_resource:  # Get the data from the web
             try:
@@ -141,9 +145,9 @@ class FolderDtbResource(DtbResource):
 
         # Buffer the resource
         item = CacheItem(resource_name, data)
-        self.buffer.add(item)
+        self.cache.add(item)
 
-        return item.data
+        return item.get_data()
 
 
 class ZipDtbResource(DtbResource):
@@ -173,7 +177,7 @@ class ZipDtbResource(DtbResource):
         if error:
             raise FileNotFoundError
 
-    def resize_buffer(self, new_size: int) -> None:
+    def resize_cache(self, new_size: int) -> None:
         """Resize the resource buffer.
 
         In the `ZipDtbResource` class, this method does nothing sice the ZIP archive is already loaded internally.

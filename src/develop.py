@@ -1,11 +1,13 @@
 import os
 from dataclasses import dataclass
+from pprint import pprint
+import sys
 from typing import List, override
 
 from loguru import logger
 
 from base_navigator import BaseNavigator
-from daisy import DaisyDtb, NccEntry, Parallel
+from daisy import DaisyDtb, NccEntry, Parallel, Smil
 from dtbsource import DtbResource, FolderDtbResource
 
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
@@ -13,7 +15,7 @@ SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../tests/sa
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 # logger.remove()
-# logger.add(sys.stderr, level="DEBUG")
+# logger.add(sys.stderr, level="INFO")
 
 
 @dataclass
@@ -205,21 +207,55 @@ def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
     # Resize buffer
-    dtb.source.resize_buffer(20)
+    dtb.source.resize_cache(500)
 
     nav = TocNavigator(dtb)
 
+    res = []
+
+    entry: NccEntry = nav.navigate_to("lyrg0005")
     entry = nav.first()
-    entry = nav.next()
+    while entry is not None:
+        res.append(entry.smil.get_full_text())
+        entry = nav.next()
+
+    # print(" ".join(res))
+    print(f"Cache queries: {dtb.source.get_cache_queries()}, cache hits: {dtb.source.get_cache_hits()}")
+
+    # for par in entry.smil.pars:
+    #     print(par.text.get())
+    return
+    while entry is not None:
+        smil = entry.smil
+        print("E", entry)
+        pprint(smil)
+        print(smil.get_full_text())
+        # smilnav = BaseNavigator(entry.smil.pars)
+        # xx = smilnav.first()
+        # while xx is not None:
+        #     print("XX", xx)
+        #     xx = smilnav.next()
+
+        # #     smil: Smil = smilnav.first()
+        # #     while smil is not None:
+        # #         print(smil.get_full_text())
+        # #         smil = smilnav.next()
+        entry = nav.next()
+    print("FE", entry)
+
+    return
+    entry = nav.first()
 
     smil = entry.smil
-    # smil.load()
+    # # smil.load()
 
     smilnav = BaseNavigator(smil.pars)
 
-    item: Parallel = smilnav.first()
+    smilnav.first()
 
     print(smil.get_full_text())
+
+    print(f"Cache queries: {dtb.source.get_cache_queries()}, cache hits: {dtb.source.get_cache_hits()}")
 
     # while item is not None:
     #     item.text.get()
@@ -244,7 +280,7 @@ def main():
             return
 
     for source in sources:
-        source.resize_buffer(10)
+        source.resize_cache(10)
         dtb = DaisyDtb(source)
         test_dtb(dtb)
 

@@ -97,42 +97,42 @@ def test_zip_source():
 
 
 def test_source_with_buffer():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=22)
-    assert source.get_buffer_size() == 22
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, initial_cache_size=22)
+    assert source.get_cache_size() == 22
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=10)
-    assert source.get_buffer_size() == 10
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=10)
+    assert source.get_cache_size() == 10
 
 
 def test_source_with_buffer_fail():
     with pytest.raises(ValueError):
-        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=-1)
+        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=-1)
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=5)
-    assert source.get_buffer_size() == 5
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
+    assert source.get_cache_size() == 5
 
     # Try buffer resize with negatve value
-    source.resize_buffer(-1)
-    assert source.get_buffer_size() == 5
+    source.resize_cache(-1)
+    assert source.get_cache_size() == 5
 
     # Try buffer resize (no change)
-    source.resize_buffer(5)
-    assert source.get_buffer_size() == 5
+    source.resize_cache(5)
+    assert source.get_cache_size() == 5
 
     # Try buffer resize
-    source.resize_buffer(15)
-    assert source.get_buffer_size() == 15
+    source.resize_cache(15)
+    assert source.get_cache_size() == 15
 
 
 def test_source_get_with_buffering():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, buffer_size=5)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
     data = source.get("hauy_0001.smil")
     data = source.get("hauy_0002.smil")
     data = source.get("hauy_0001.smil")
     data = source.get("hauy_0002.smil")
     assert isinstance(data, Document) is True
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, buffer_size=1)
+    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, initial_cache_size=1)
     data = source.get("ncc.html")
     assert isinstance(data, Document) is True
     data = source.get("04_Mission_et_valeurs.mp3")
