@@ -81,8 +81,16 @@ class Cache:
     __max_size: int = field(init=False, default=0)
     __auto_expand: bool = field(init=False, default=False)
     __items: List[CacheItem] = field(init=False, default_factory=list)
+    __queries: int = field(init=False, default=0)
+    __hits: int = field(init=False, default=0)
 
-    def __post_init__(self, max_size, auto_expand):
+    def __post_init__(self, max_size: int, auto_expand: bool) -> None:
+        """Cache post initialize.
+
+        Args:
+            max_size (int): the maximum cache items number.
+            auto_expand (bool): auto expand the size if Tue.
+        """
         self.__auto_expand = auto_expand
 
         if max_size < 0:
@@ -90,6 +98,18 @@ class Cache:
             self.__max_size = 0
         else:
             self.__max_size = max_size
+
+    @property
+    def queries(self) -> int:
+        return self.__queries
+
+    @property
+    def hits(self) -> int:
+        return self.__hits
+
+    @property
+    def efficiency(self) -> float:
+        return self.__hits / self.__queries if self.__queries > 0 else 0.0
 
     def get_current_size(self) -> int:
         """Get the current cache size.
@@ -162,8 +182,10 @@ class Cache:
         Returns:
             CacheItem | None: the found `CacheItem` or None
         """
+        self.__queries += 1
         try:
             index = [_.get_name() for _ in self.__items].index(resource_name)
+            self.__hits += 1
             logger.debug(f"Index of item '{resource_name}' is {index}.")
         except ValueError:
             logger.debug(f"Item '{resource_name}' not found in the cache.")

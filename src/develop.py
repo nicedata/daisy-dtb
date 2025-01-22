@@ -220,7 +220,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
         entry = nav.next()
 
     # print(" ".join(res))
-    print(f"Cache queries: {dtb.source.get_cache_queries()}, cache hits: {dtb.source.get_cache_hits()}")
+    print(f"Cache queries: {dtb.source.cache_queries}, cache hits: {dtb.source.cache_hits}, {dtb.source.cache_efficiency*100}%")
 
     # for par in entry.smil.pars:
     #     print(par.text.get())
@@ -255,7 +255,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
 
     print(smil.get_full_text())
 
-    print(f"Cache queries: {dtb.source.get_cache_queries()}, cache hits: {dtb.source.get_cache_hits()}")
+    print(f"Cache queries: {dtb.source.cache_queries()}, cache hits: {dtb.source.cache_hits()}")
 
     # while item is not None:
     #     item.text.get()

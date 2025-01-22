@@ -16,20 +16,20 @@ def test_get_element_by_id():
     ID = "dijn0198"
     test = ncc_document.get_element_by_id(ID)
     assert test is not None
-    assert type(test) is Element
-    assert test.get_name() == "h5"
+    assert isinstance(test, Element) is True
+    assert test.name == "h5"
     assert test.get_attr("id") == ID
-    assert test.get_value() is None
-    assert test.get_text() == "Art. 25, al. 2, let. a, phrase introductive"
+    assert test.value is None
+    assert test.text == "Art. 25, al. 2, let. a, phrase introductive"
 
     ID = "dijn0159"
     test = ncc_document.get_element_by_id(ID)
     assert test is not None
     assert type(test) is Element
-    assert test.get_name() == "h2"
+    assert test.name == "h2"
     assert test.get_attr("id") == ID
-    assert test.get_value() is None
-    assert test.get_text() == "Arguments - Conseil fédéral et Parlement"
+    assert test.value is None
+    assert test.text == "Arguments - Conseil fédéral et Parlement"
 
     # Find an unfindable element
     test = ncc_document.get_element_by_id("unexisting_id")
@@ -40,10 +40,10 @@ def test_get_elements():
     """Find multiple elements with no filter."""
 
     elements = ncc_document.get_elements_by_tag_name("h1")
-    assert elements.get_size() == 15
+    assert elements.size == 15
 
     elements = ncc_document.get_elements_by_tag_name("H1")
-    assert elements.get_size() == 0
+    assert elements.size == 0
 
 
 def test_get_elements_with_filter():
@@ -53,10 +53,10 @@ def test_get_elements_with_filter():
     AWAITED_TEXT = "Recommandation du Conseil fédéral et du Parlement"
 
     elements = ncc_document.get_elements_by_tag_name("*", FILTER)
-    assert elements.get_size() == 1
-    assert elements.first().get_name() == "a"
-    assert elements.first().get_text() == AWAITED_TEXT
-    assert elements.first().get_value() == AWAITED_TEXT
+    assert elements.size == 1
+    assert elements.first().name == "a"
+    assert elements.first().text == AWAITED_TEXT
+    assert elements.first().value == AWAITED_TEXT
 
 
 def test_get_children():
@@ -66,9 +66,37 @@ def test_get_children():
 
     # Test get_children in an ncc document
     for element in ncc_document.get_elements_by_tag_name("h1").all():
-        assert element.get_children("m").get_size() == 0
-        assert element.get_children("a").get_size() == 1
+        assert element.get_children_by_tag_name("m").size == 0
+        assert element.get_children_by_tag_name("a").size == 1
 
     # Test get_children in an smil document
     elements = smil_document.get_elements_by_tag_name("seq", having_parent_tag_name="body").all()
     assert len(elements) == 1
+
+
+def test_void_element():
+    element = Element(None)
+    assert element.is_void is True
+    assert element.name is None
+    assert element.get_attr("id") is None
+    assert element.parent is None
+    assert element.text is None
+    assert element.value is None
+    assert element.get_children_by_tag_name("test") is None
+    assert element.get_children_by_tag_name("") is None
+
+    element = Element(12)
+    element = Element(None)
+    assert element.is_void is True
+    assert element.name is None
+    assert element.get_attr("id") is None
+    assert element.parent is None
+    assert element.text is None
+    assert element.value is None
+    assert element.get_children_by_tag_name("test") is None
+    assert element.get_children_by_tag_name("") is None
+
+
+def test_get_parent():
+    for element in ncc_document.get_elements_by_tag_name("h1").all():
+        assert element.parent.name == "body"

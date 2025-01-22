@@ -1,14 +1,12 @@
-"""Classes to encapsulate and simply the usage of the xml.dom.minidom library."""
+"""Classes to encapsulate and simplify the usage of the xml.dom.minidom library."""
 
 import re
 import urllib.request
-from dataclasses import dataclass, field
-from typing import Dict, List, Union
+import xml.dom.minidom
+from dataclasses import InitVar, dataclass, field
+from typing import Dict, List, Optional, Union
 from urllib.error import HTTPError, URLError
-from xml.dom.minidom import Document as XdmDocument
-from xml.dom.minidom import Element as XdmElement
-from xml.dom.minidom import Node as XdmNode
-from xml.dom.minidom import parseString
+from xml.dom.minidom import parseString as xdm_parse_string
 from xml.parsers.expat import ExpatError
 
 from loguru import logger
@@ -18,108 +16,165 @@ from loguru import logger
 class Element:
     """Representation of a DOM element."""
 
-    _node: XdmElement = None  # The node in the xml.dom.minidom referential
-    _children: "ElementList" = None  # 'ElementList'()  List["Element"] = field(default_factory=list)  # Child elements
+    xml_node: InitVar[xml.dom.minidom.Element]  # The node in the xml.dom.minidom referential
 
-    def __post_init__(self):
-        """Populate the child elements list."""
-        self._children = DomFactory.create_element_list(self._node.childNodes)
+    # Internal attributes
+    _xml_node: xml.dom.minidom.Element = field(init=False, default=None)
+    _children: "ElementList" = field(init=False, default=None)
 
-    def get_name(self) -> str:
-        """Get the element's name (tag name)."""
-        return self._node.tagName
+    def __post_init__(self, xml_node: xml.dom.minidom.Element):
+        """Post initialization of the Element instance."""
+        if not isinstance(xml_node, xml.dom.minidom.Element):
+            return
 
-    def get_attr(self, attr: str) -> str:
-        """Get the value of an attribute."""
-        return self._node.getAttribute(attr)
+        self._xml_node = xml_node
+        self._children = DomFactory.create_element_list(self._xml_node.childNodes)
 
-    def get_value(self) -> str | None:
-        return self._node.firstChild.nodeValue if self._node.hasChildNodes() else None
-
-    def _get_text(self, root: "Element", _text: str = "") -> str:
+    def _get_text(self, root: xml.dom.minidom.Node, _text: str = "") -> str:
         """Get text from the root element and its children.
 
-        Note:
+        Notes:
             - This method is recursive.
             - Do not call directly (private method).
 
         Args:
-            root (Element): the root element
+            root (xml.dom.minidom.Node): the root element
             _text (str, optional): the current text. Defaults to "".
 
         Returns:
             str: the full string.
         """
+        child: xml.dom.minidom.Element
         for child in root.childNodes:
             match child.nodeType:
-                case XdmNode.TEXT_NODE:
+                case xml.dom.minidom.Node.TEXT_NODE:
                     _text += child.nodeValue
-                case XdmNode.ELEMENT_NODE:
+                case xml.dom.minidom.Node.ELEMENT_NODE:
                     # Recurse here !
                     _text = self._get_text(child, _text)
                 case _:
                     ...
+
         return _text
 
-    def get_text(self) -> str:
-        """Returns a string with no carriage returns and duplicate spaces."""
-        text = self._get_text(self._node)
-        return re.sub(r"\s+", " ", text).strip() if len(text) else ""
+    @property
+    def is_void(self) -> bool:
+        """Test if the class is fully instanciated.
 
-    def get_children(self, tag_name: str = None) -> "ElementList":
-        """Get all child elements by tag name (or all if no tag_name is specified)."""
-        if tag_name is None:
+        Returns:
+            bool: True if the class is correctly intanciated, False otherwise.
+        """
+        return isinstance(self._xml_node, xml.dom.minidom.Element) is False
+
+    @property
+    def has_children(self) -> bool:
+        return self._children.size > 0
+
+    @property
+    def name(self) -> Union[str, None]:
+        """Get the element's name (tag name)."""
+        if self.is_void:
+            return None
+
+        return self._xml_node.tagName if not self.is_void else None
+
+    @property
+    def value(self) -> Union[str, None]:
+        if self.is_void:
+            return None
+
+        return self._xml_node.firstChild.nodeValue if self._xml_node.hasChildNodes() else None
+
+    @property
+    def text(self) -> Union[str, None]:
+        """Returns a string with no carriage returns and duplicate spaces."""
+        if self.is_void:
+            return None
+
+        text = self._get_text(self._xml_node)
+        print(f"Z{re.sub(r"\s+", " ", text).strip() if len(text) else None}Z")
+        return re.sub(r"\s+", " ", text).strip() if len(text) else None
+
+    @property
+    def parent(self) -> Union["Element", None]:
+        """Get the parent element.
+
+        Returns:
+            Element: an element or None
+        """
+        if self.is_void:
+            return None
+
+        return Element(self._xml_node.parentNode) if self._xml_node.parentNode else None
+
+    def get_attr(self, attr: str) -> Union[str, None]:
+        """Get the value of an attribute."""
+        if self.is_void:
+            return None
+
+        return None if self.is_void else self._xml_node.getAttribute(attr)
+
+    def get_children_by_tag_name(self, tag_name: Optional[str] = "") -> Union["ElementList", None]:
+        """Get all child elements by tag name (or all if no tag_name is specified).
+
+        Args:
+            tag_name (str, optional): the searched tag name. Defaults to "".
+
+        Returns:
+            ElementList: an element list or None.
+        """
+        if self.is_void or isinstance(tag_name, str) is False:
+            return None
+
+        if tag_name.strip() == "":
             return self._children
 
         result = ElementList()
         child: Element
         for child in self._children.all():
-            if child.get_name() == tag_name:
-                result._elements.append(child)
+            if child.name == tag_name:
+                result.elements.append(child)
 
         return result
-
-    def get_parent(self) -> Union["Element", None]:
-        """Get the parent element."""
-        return Element(self._node.parentNode)
 
 
 @dataclass
 class ElementList:
-    _elements: List[Element] = field(default_factory=list)
+    elements: List[Element] = field(default_factory=list)
 
-    def get_size(self):
+    @property
+    def size(self) -> int:
         """Get the number of elements."""
-        return len(self._elements)
+        return len(self.elements)
 
-    def add_element(self, element: Element) -> None:
+    def append(self, element: Element) -> None:
         """Add an element."""
         if element and isinstance(element, Element):
-            self._elements.append(element)
+            self.elements.append(element)
 
     def first(self) -> Element | None:
         """Get the first element."""
-        return self._elements[0] if self.get_size() > 0 else None
+        return self.elements[0] if self.size > 0 else None
 
     def all(self) -> List[Element]:
         """Get all elements"""
-        return self._elements
+        return self.elements
 
 
 @dataclass
 class Document:
     """This class represents a whole xml or html document."""
 
-    _root: XdmDocument = None
+    _root: xml.dom.minidom.Document = None
 
     def get_element_by_id(self, id: str) -> Union[Element, None]:
         """Get an element by its id"""
         for elt in self._root.getElementsByTagName("*"):
             if elt.getAttribute("id") == id:
-                return Element(_node=elt)
+                return Element(xml_node=elt)
         return None
 
-    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, having_parent_tag_name: str = None) -> Union[ElementList, None]:
+    def get_elements_by_tag_name(self, tag_name: str, filter: Dict = {}, having_parent_tag_name: str = None) -> ElementList:
         """
         Get elements by tag name.
 
@@ -133,32 +188,35 @@ class Document:
             having_parent_tag_name (str, optional): the parent tag name filter. Defaults to None.
 
         Returns:
-            ElementList | None: the searched element (or None).
+            ElementList | None: the searched element (may be empty).
         """
         if self._root is None:
-            return None
-        logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {having_parent_tag_name}")
-        nodes = self._root.getElementsByTagName(tag_name)
+            return ElementList()
 
-        node_list = []
+        logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {having_parent_tag_name}")
+        xdm_nodes = self._root.getElementsByTagName(tag_name)
+
+        # Filter data
         if having_parent_tag_name:
-            for element in nodes:
-                if element.parentNode.tagName == having_parent_tag_name:
-                    node_list.append(element)
+            xdm_node_list = []
+            for xdm_element in xdm_nodes:
+                if xdm_element.parentNode.tagName == having_parent_tag_name:
+                    xdm_node_list.append(xdm_element)
         else:
-            node_list = nodes
+            xdm_node_list = xdm_nodes
 
         # No filter : get all elements
         if len(filter.items()) == 0:
-            return DomFactory.create_element_list(node_list)
+            return DomFactory.create_element_list(xdm_node_list)
 
         # With filtering
         result = ElementList()
-        for elt in node_list:
+        for elt in xdm_node_list:
             for k, v in filter.items():
                 attr = elt.getAttribute(k)
                 if attr == v:
-                    result.add_element(Element(_node=elt))
+                    result.append(Element(xml_node=elt))
+
         return result
 
 
@@ -175,7 +233,7 @@ class DomFactory:
             Document | None: a Document or None
         """
         try:
-            xdm_document = parseString(string)
+            xdm_document = xdm_parse_string(string)
         except ExpatError as e:
             logger.error(f"An xml.minidom parsing error occurred. The code is {e.code}.")
             return None
@@ -193,7 +251,7 @@ class DomFactory:
         try:
             response = urllib.request.urlopen(url)
             data = response.read()
-            return Document(_root=parseString(data))
+            return Document(_root=xdm_parse_string(data))
         except HTTPError as e:
             logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
         except URLError as e:
@@ -201,17 +259,18 @@ class DomFactory:
         return None
 
     @staticmethod
-    def create_element_list(nodes: List[XdmElement]) -> ElementList:
+    def create_element_list(xml_nodes: List[xml.dom.minidom.Element]) -> ElementList:
         """Create an Element list from a list of xml.minidom nodes.
 
         Args:
-            nodes (List[XdmElement]): The xml.minidom element list
+            nodes (List[xml.dom.minidom.Element]): an xml.minidom element list.
 
         Returns:
             ElementList: a list of Element
         """
         result = ElementList()
-        for node in nodes:
-            if isinstance(node, XdmElement):
-                result._elements.append(Element(_node=node))
+        for node in xml_nodes:
+            if isinstance(node, xml.dom.minidom.Element):
+                result.elements.append(Element(xml_node=node))
+
         return result

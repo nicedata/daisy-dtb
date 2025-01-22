@@ -33,10 +33,8 @@ class DtbResource(ABC):
         if initial_cache_size < 0:
             raise ValueError("The cache size cannot be negative.")
 
-        self.resource_base = resource_base
-        self.cache = Cache(max_size=initial_cache_size)
-        self.cache_queries: int = 0
-        self.cache_hits: int = 0
+        self._resource_base = resource_base
+        self._cache = Cache(max_size=initial_cache_size)
 
     @abstractmethod
     def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
@@ -74,31 +72,37 @@ class DtbResource(ABC):
         Args:
             new_size (int): the new size.
         """
-        if new_size == self.cache.get_max_size():
+        if new_size == self._cache.get_max_size():
             logger.debug("Buffer not resized. No change in buffer size.")
             return
 
         if new_size >= 0:
-            self.cache.set_max_size(new_size)
-            logger.debug(f"Buffer resized to hold {self.cache.get_max_size()} items")
+            self._cache.set_max_size(new_size)
+            logger.debug(f"Buffer resized to hold {self._cache.get_max_size()} items")
 
     def get_cache_size(self) -> int:
-        return self.cache.get_max_size()
+        return self._cache.get_max_size()
 
-    def get_cache_queries(self) -> int:
-        return self.cache_queries
+    @property
+    def cache_queries(self) -> int:
+        return self._cache.queries
 
-    def get_cache_hits(self) -> int:
-        return self.cache_hits
+    @property
+    def cache_hits(self) -> int:
+        return self._cache.hits
+
+    @property
+    def cache_efficiency(self) -> float:
+        return round(self._cache.efficiency, 2)
 
 
 class FolderDtbResource(DtbResource):
     """This class gets data from a filesystem folder or a web location"""
 
     def __init__(self, resource_base: str, initial_cache_size=0) -> None:
+        resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
+        self.is_web_resource: bool = "://" in resource_base
         super().__init__(resource_base, initial_cache_size)
-        self.resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
-        self.is_web_resource: bool = "://" in self.resource_base
         error = False
 
         if self.is_web_resource:
@@ -109,20 +113,18 @@ class FolderDtbResource(DtbResource):
             except URLError:
                 error = True
         else:
-            if not Path(self.resource_base).exists():
+            if not Path(self._resource_base).exists():
                 error = True
 
         if error:
             raise FileNotFoundError
 
     def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
-        path = f"{self.resource_base}{resource_name}"
+        path = f"{self._resource_base}{resource_name}"
 
         # Try to get data from the cached resources
-        self.cache_queries += 1
-        cached_resource = self.cache.get(resource_name)
+        cached_resource = self._cache.get(resource_name)
         if cached_resource is not None:
-            self.cache_hits += 1
             return cached_resource.get_data()
 
         if self.is_web_resource:  # Get the data from the web
@@ -145,7 +147,7 @@ class FolderDtbResource(DtbResource):
 
         # Buffer the resource
         item = CacheItem(resource_name, data)
-        self.cache.add(item)
+        self._cache.add(item)
 
         return item.get_data()
 
@@ -156,22 +158,22 @@ class ZipDtbResource(DtbResource):
     def __init__(self, resource_base) -> None:
         super().__init__(resource_base, 0)
         self.bytes_io: BytesIO = None
-        self.is_web_resource: bool = "://" in self.resource_base
+        self.is_web_resource: bool = "://" in self._resource_base
         error = False
 
         if self.is_web_resource:
             # Store the bytes as BytesIO to avoid multiple web requests
             try:
-                with urllib.request.urlopen(self.resource_base) as response:
+                with urllib.request.urlopen(self._resource_base) as response:
                     self.bytes_io = BytesIO(response.read())
             except URLError:
                 error = True
         else:
             # Work in the filesystem
-            if not Path(self.resource_base).exists():
+            if not Path(self._resource_base).exists():
                 error = True
 
-            if not zipfile.is_zipfile(self.resource_base):
+            if not zipfile.is_zipfile(self._resource_base):
                 error = True
 
         if error:
@@ -191,7 +193,7 @@ class ZipDtbResource(DtbResource):
         error = False
 
         # Set the correct source
-        source = self.bytes_io if self.is_web_resource else self.resource_base
+        source = self.bytes_io if self.is_web_resource else self._resource_base
 
         with zipfile.ZipFile(source, mode="r") as archive:
             try:
@@ -200,7 +202,7 @@ class ZipDtbResource(DtbResource):
                 error = True
 
         if error:
-            logger.error(f"Error: archive {self.resource_base} does not contain file {resource_name}")
+            logger.error(f"Error: archive {self._resource_base} does not contain file {resource_name}")
             return None
 
         return self._convert_data(data)

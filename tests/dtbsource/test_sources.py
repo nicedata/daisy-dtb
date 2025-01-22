@@ -140,7 +140,7 @@ def test_source_get_with_buffering():
 
 
 def test_buffering():
-    buffer = Cache(5)
+    buffer = Cache(max_size=5)
 
     items = [
         CacheItem("item1", b"123"),
@@ -153,14 +153,17 @@ def test_buffering():
         CacheItem("item7", b"string 8"),
     ]
 
-    assert buffer.get_current_size() == 5
+    assert buffer.get_current_size() == 0
+    assert buffer.get_max_size() == 5
     for item in items:
         buffer.add(item)
+    assert buffer.get_current_size() == 5
 
     buffer.set_max_size(10)
-    assert buffer.get_current_size() == 10
+    assert buffer.get_max_size() == 10
     for item in items:
         buffer.add(item)
+    assert buffer.get_current_size() == len(items) - 1  # 'item1' appears twice !
 
     item = buffer.get("item5")
-    assert item.name == "item5"
+    assert item.get_name() == "item5"

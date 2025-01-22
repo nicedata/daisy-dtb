@@ -81,7 +81,7 @@ class Text:
 
         element = data.get_element_by_id(self.reference.fragment)
         if element is not None:
-            self._content = element.get_text()
+            self._content = element.text
             self._is_loaded = True
             return self._content
         else:
@@ -162,7 +162,7 @@ class Smil:
         for par in self._pars:
             result.append(par.text.get())
 
-        return "\n\n".join(result)
+        return " \n".join(result)
 
     def load(self) -> None:
         """Load a the SMIL file (if not already loaded)."""
@@ -198,19 +198,19 @@ class Smil:
         # Process sequences in body
         for body_seq in data.get_elements_by_tag_name("seq", having_parent_tag_name="body").all():
             # Process the <par/> element in the sequence
-            for par in body_seq.get_children("par").all():
+            for par in body_seq.get_children_by_tag_name("par").all():
                 par_id = par.get_attr("id")
 
                 # Handle the <text/>
-                text = par.get_children("text").first()
+                text = par.get_children_by_tag_name("text").first()
                 id = text.get_attr("id")
                 src, frag = text.get_attr("src").split("#")
                 current_text = Text(self.source, id, Reference(src, frag))
                 current_par = Parallel(self.source, par_id, current_text)
 
                 # Handle the <audio/> clip
-                for par_seq in par.get_children("seq").all():
-                    audios = par_seq.get_children("audio").all()
+                for par_seq in par.get_children_by_tag_name("seq").all():
+                    audios = par_seq.get_children_by_tag_name("audio").all()
                     for audio in audios:
                         id = audio.get_attr("id")
                         src = audio.get_attr("src")
@@ -266,15 +266,15 @@ class DaisyDtb:
     def _populate_entries(self, data: Document):
         """Process and store the NCC entries (hx tags)."""
         body = data.get_elements_by_tag_name("body").first()
-        for element in body.get_children().all():
-            element_name = element.get_name()
+        for element in body.get_children_by_tag_name().all():
+            element_name = element.name
             if element_name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
                 level = int(element_name[1])
                 id = element.get_attr("id")
-                a = element.get_children("a").first()
+                a = element.get_children_by_tag_name("a").first()
                 src, frag = a.get_attr("href").split("#")
                 smil_reference = Reference(src, frag)
-                self.entries.append(NccEntry(self.source, id, level, smil_reference, a.get_text()))
+                self.entries.append(NccEntry(self.source, id, level, smil_reference, a.text))
 
     def _populate_smils(self):
         for entry in self.entries:
