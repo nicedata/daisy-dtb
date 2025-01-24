@@ -66,19 +66,13 @@ class DtbResource(ABC):
         except UnicodeDecodeError:
             return data
 
-    def resize_cache(self, new_size: int) -> None:
+    def set_cache_size(self, size: int) -> None:
         """Resize the resource buffer.
 
         Args:
             new_size (int): the new size.
         """
-        if new_size == self._cache.get_max_size():
-            logger.debug("Buffer not resized. No change in buffer size.")
-            return
-
-        if new_size >= 0:
-            self._cache.set_max_size(new_size)
-            logger.debug(f"Buffer resized to hold {self._cache.get_max_size()} items")
+        self._cache.resize(size)
 
     def get_cache_size(self) -> int:
         return self._cache.get_max_size()
@@ -179,7 +173,7 @@ class ZipDtbResource(DtbResource):
         if error:
             raise FileNotFoundError
 
-    def resize_cache(self, new_size: int) -> None:
+    def set_cache_size(self, new_size: int) -> None:
         """Resize the resource buffer.
 
         In the `ZipDtbResource` class, this method does nothing sice the ZIP archive is already loaded internally.

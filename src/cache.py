@@ -1,11 +1,46 @@
 """Resource cacheing classes"""
 
+from collections import deque
 from dataclasses import InitVar, dataclass, field
-from typing import Any, List, Union
+from typing import Any, List, Set, Union
 
 from loguru import logger
 
 from domlib import DomFactory
+
+
+@dataclass
+class CacheStatItem:
+    name: str = field(init=True)
+    hits: int = 0
+    queries: int = field(init=False, default=1)
+
+    @property
+    def efficiency(self) -> float:
+        return self.hits / self.queries
+
+
+@dataclass
+class CacheStats:
+    _item_names: Set[str] = field(init=False, default_factory=set)
+    _items: List[CacheStatItem] = field(init=False, default_factory=list)
+
+    def add(self, item: CacheStatItem) -> None:
+        if item.name in self._item_names:
+            item_index = [_.name for _ in self._items].index(item.name)
+            cache_stat_item = self._items[item_index]
+            cache_stat_item.queries += 1
+            cache_stat_item.hits = cache_stat_item.hits + item.hits
+        else:
+            self._item_names.add(item.name)
+            self._items.append(item)
+
+    def get_stats(self) -> str:
+        result = ["Cache statistics"]
+        self._items.sort(key=lambda x: x.name)
+        for item in self._items:
+            result.append(f"{item.name:10s} :: queries: {item.queries:4}, hits: {item.hits:4}, efficiency: {item.efficiency*100:.2f} %")
+        return "\n".join(result)
 
 
 @dataclass
@@ -70,54 +105,65 @@ class CacheItem:
             return data
 
 
+# @dataclass
 @dataclass(kw_only=True)
 class Cache:
     """Representation of resource cache"""
 
     max_size: InitVar[int] = 0
-    auto_expand: InitVar[bool] = False
+    with_stats: InitVar[bool] = False
 
     # Internal attributes
-    __max_size: int = field(init=False, default=0)
-    __auto_expand: bool = field(init=False, default=False)
-    __items: List[CacheItem] = field(init=False, default_factory=list)
+    __items: deque[CacheItem] = field(init=False, default_factory=deque)
+    __with_stats: bool = field(init=False, default=False)
     __queries: int = field(init=False, default=0)
     __hits: int = field(init=False, default=0)
+    __stats: CacheStats = field(init=False, default_factory=CacheStats)
 
-    def __post_init__(self, max_size: int, auto_expand: bool) -> None:
+    def __post_init__(self, max_size: int, with_stats: bool) -> None:
         """Cache post initialize.
 
         Args:
             max_size (int): the maximum cache items number.
-            auto_expand (bool): auto expand the size if Tue.
         """
-        self.__auto_expand = auto_expand
 
         if max_size < 0:
-            logger.warning(f"The cache size must be positive. You supplied {max_size}. Cache size set to 0.")
-            self.__max_size = 0
-        else:
-            self.__max_size = max_size
+            logger.warning(f"The cache size must be positive. {max_size} was supplied: cache size set to 0.")
+            max_size = 0
+
+        self.__items = deque(maxlen=max_size)
+        self.__with_stats = with_stats
+        logger.debug(f"Cache created. Size: {max_size}. Statistic collections is {'active' if self.__with_stats else 'inactive'}.")
 
     @property
     def queries(self) -> int:
+        """Get the number of cache queries.
+
+        Returns:
+            int: the number of queries
+        """
         return self.__queries
 
     @property
     def hits(self) -> int:
+        """Get the number of cache hits.
+
+        Returns:
+            int: the number of hits
+        """
         return self.__hits
 
     @property
     def efficiency(self) -> float:
-        return self.__hits / self.__queries if self.__queries > 0 else 0.0
-
-    def get_current_size(self) -> int:
-        """Get the current cache size.
+        """Get the cache efficiency
 
         Returns:
-            int: the actual cache size.
+            float: a number between 0 (0%) and 1 (100%)
         """
-        return len(self.__items)
+        return self.__hits / self.__queries if self.__queries > 0 else 0.0
+
+    def stats(self):
+        return self.__stats.get_stats()
 
     def get_max_size(self) -> int:
         """Get the max. cache size.
@@ -125,53 +171,62 @@ class Cache:
         Returns:
             int: the actual cache size.
         """
-        return self.__max_size
+        return self.__items.maxlen
 
-    def set_max_size(self, size: int) -> None:
-        """Set the cache size.
+    def resize(self, new_size: int) -> None:
+        """Resize the cache.
 
         Args:
-            size (int): requested size. Must be greter or equal to 0.
+            new_size (int): the new size
         """
-        if self.__auto_expand is False:
-            self.__max_size = size if size >= 0 else self.__max_size
+        # Type check
+        if not isinstance(new_size, int):
+            return
 
-    def add(self, item: CacheItem, force: bool = False) -> None:
+        # Size check
+        if new_size == self.__items.maxlen:
+            return
+
+        # Cache migration
+        new_cache = deque(maxlen=new_size)
+        self.__items.reverse()
+        if new_cache.maxlen > 0:
+            for index, item in enumerate(self.__items):
+                if index > new_cache.maxlen - 1:
+                    break
+                new_cache.appendleft(item)
+
+        self.__items = new_cache
+
+    def add(self, item: CacheItem) -> None:
         """Add a `CacheItem` into the cache.
 
         This method takes care of the cache size:
-            - If it is 0, nothing is done.
+            - If it is 0, nothing is done unless auto_expand is true.
             - If the addition would overfill the cache, the oldest item is removed before adding the new one.
 
         Args:
             item (CacheItem): the item to add.
-            force (bool): force a replacement. Defaults to False.
-        """
 
-        # No cache, no cacheing
-        item_name = item.get_name()
-        if self.__auto_expand is False and self.__max_size == 0:
-            logger.debug(f"Item '{item_name}' will not be added. The cache size is 0.Auto expand feature is off.")
+        """
+        # Checks
+        if self.__items.maxlen == 0 or not isinstance(item, CacheItem):
             return
 
-        # Check if item exists
-        if item.get_name() in [_.get_name() for _ in self.__items]:
-            if force is False:
-                logger.debug(f"Item '{item_name}' is alerady in the cache. Force feature is off.")
-                return
-            else:
-                logger.debug(f"Item '{item_name}' is alerady in the cache. It will be replaced. Force feature is on.")
+        item_name = item.get_name()
 
-        # In case of cache size limit reached, remove the oldest item
-        if self.__auto_expand is False:
-            if len(self.__items) + 1 > self.__max_size:
-                logger.debug(f"Removing item '{self.__items[0].get_name()}' from the cache. Auto expand feature is off.")
-                del self.__items[0]
+        # Check if item exists
+        try:
+            item_index = [_.get_name() for _ in self.__items].index(item_name)
+            self.__items[item_index] = item
+            logger.debug(f"Item '{item_name}' in the cache (index={item_index}) has been updated.")
+            return
+        except ValueError:
+            ...
 
         # Append the item
-        logger.debug(f"Adding item '{item_name}' to the cache.")
         self.__items.append(item)
-        logger.debug(f"The cache now holds {self.get_current_size()} items.")
+        logger.debug(f"Item '{item_name}' added into the cache.")
 
     def get(self, resource_name: str) -> CacheItem | None:
         """Get a `CacheItem` from the cache.
@@ -183,13 +238,19 @@ class Cache:
             CacheItem | None: the found `CacheItem` or None
         """
         self.__queries += 1
+        result = None
+        stat_item = CacheStatItem(resource_name) if self.__with_stats else None
+
         try:
-            index = [_.get_name() for _ in self.__items].index(resource_name)
+            item_index = [_.get_name() for _ in self.__items].index(resource_name)
+            if stat_item:
+                stat_item.hits = 1
             self.__hits += 1
-            logger.debug(f"Index of item '{resource_name}' is {index}.")
+            logger.debug(f"Item '{resource_name}' found in the cache (index={item_index}).")
+            result = self.__items[item_index]
         except ValueError:
             logger.debug(f"Item '{resource_name}' not found in the cache.")
-            return None
 
-        logger.debug(f"Item '{resource_name}' found in the cache.")
-        return self.__items[index]
+        if self.__with_stats:
+            self.__stats.add(stat_item)
+        return result

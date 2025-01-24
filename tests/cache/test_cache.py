@@ -1,5 +1,6 @@
 """Test the cache module."""
 
+from pprint import pprint
 from cache import Cache, CacheItem
 from domlib import Document
 
@@ -7,24 +8,47 @@ from domlib import Document
 def test_sizeing():
     cache = Cache(max_size=-3)
     assert cache.get_max_size() == 0
-    assert cache.get_current_size() == 0
 
-    cache.set_max_size(3)
+    cache.resize(3)
     assert cache.get_max_size() == 3
-    assert cache.get_current_size() == 0
 
     # Set size to 100 elements
-    cache.set_max_size(100)
-    assert cache.get_max_size() == 100
-    assert cache.get_current_size() == 0
-
-    # Resizeing to negative values does not work
-    cache.set_max_size(-1)
+    cache.resize(100)
     assert cache.get_max_size() == 100
 
-    # Resize to 0
-    cache.set_max_size(0)
-    assert cache.get_current_size() == 0
+    # Set size to 100 elements
+    cache.resize(0)
+    assert cache.get_max_size() == 0
+
+
+def test_sizeing_with_elements():
+    items = [
+        CacheItem("first", b"first"),
+        CacheItem("next 1", b"next 1"),
+        CacheItem("next 2", b"next 2"),
+        CacheItem("last", b"last"),
+    ]
+
+    cache = Cache(max_size=4)
+    assert cache.get_max_size() == 4
+
+    for item in items:
+        cache.add(item)
+
+    assert cache.get("next 2") == CacheItem("next 2", b"next 2")
+    assert cache.get("last") == CacheItem("last", b"last")
+
+    cache.resize(3)
+    assert cache.get("last") == CacheItem("last", b"last")
+    assert cache.get("first") is None
+
+    cache.resize(0)
+
+    for item in items:
+        cache.add(item)
+
+    assert cache.get("last") is None
+    assert cache.get("first") is None
 
 
 def test_adding_items():
@@ -60,9 +84,6 @@ def test_adding_items():
     item4 = CacheItem("item 4", "<a>This is<b>a test</b></a>")
     cache.add(item4)
 
-    # Cache current size should still be 3
-    assert cache.get_current_size() == 3
-
     # Item 4 tests
     cached_item = cache.get("item 4")
     assert cached_item is item4
@@ -72,33 +93,32 @@ def test_adding_items():
     cached_item = cache.get("item 1")
     assert cached_item is None
 
-    # Cache size should still be 3
-    assert cache.get_current_size() == 3
 
+def test_stats():
+    items = [
+        CacheItem("first", b"first"),
+        CacheItem("next 1", b"next 1"),
+        CacheItem("next 2", b"next 2"),
+        CacheItem("last", b"last"),
+    ]
 
-def test_autoexpand_adding_items():
-    # Create a cache for 3 items
-    cache = Cache(auto_expand=True)
-    assert cache.get_max_size() == 0
-    assert cache.get_current_size() == 0
+    cache = Cache(max_size=4, with_stats=True)
+    assert cache.get_max_size() == 4
+    [cache.add(_) for _ in items]
 
-    # Add bytes
-    for n in range(3):
-        print(n)
-        item = CacheItem(f"item {n}", b"123345")
-        cache.add(item)
+    for i in range(13):
+        cache.get("first")
 
-    assert cache.get_current_size() == 3
+    for i in range(8):
+        cache.get("next 1")
 
-    for n in range(3):
-        print(n)
-        item = CacheItem(f"item {n}", b"123345")
-        cache.add(item)
+    for i in range(2):
+        cache.get("next 2")
 
-    # Force addition
-    for n in range(3):
-        print(n)
-        item = CacheItem(f"item {n}", b"123345")
-        cache.add(item, force=True)
+    for i in range(20):
+        cache.get("dummy")
 
-    assert cache.get_current_size() == 6
+    for i in range(12):
+        cache.get("last")
+
+    print(cache.stats())

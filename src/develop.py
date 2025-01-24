@@ -207,7 +207,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
     # Resize buffer
-    dtb.source.resize_cache(500)
+    dtb.source.set_cache_size(100)
 
     nav = TocNavigator(dtb)
 
@@ -280,7 +280,7 @@ def main():
             return
 
     for source in sources:
-        source.resize_cache(10)
+        source.set_cache_size(10)
         dtb = DaisyDtb(source)
         test_dtb(dtb)
 

@@ -112,15 +112,15 @@ def test_source_with_buffer_fail():
     assert source.get_cache_size() == 5
 
     # Try buffer resize with negatve value
-    source.resize_cache(-1)
+    source.set_cache_size(-1)
     assert source.get_cache_size() == 5
 
     # Try buffer resize (no change)
-    source.resize_cache(5)
+    source.set_cache_size(5)
     assert source.get_cache_size() == 5
 
     # Try buffer resize
-    source.resize_cache(15)
+    source.set_cache_size(15)
     assert source.get_cache_size() == 15
 
 
