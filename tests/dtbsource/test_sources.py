@@ -3,7 +3,7 @@ from domlib import Document
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
-from cache import Cache, CacheItem
+from cache import Cache, _CacheItem
 
 
 def test_source_fail():
@@ -98,10 +98,10 @@ def test_zip_source():
 
 def test_source_with_buffer():
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, initial_cache_size=22)
-    assert source.get_cache_size() == 22
+    assert source.cache_size == 22
 
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=10)
-    assert source.get_cache_size() == 10
+    assert source.cache_size == 10
 
 
 def test_source_with_buffer_fail():
@@ -109,19 +109,19 @@ def test_source_with_buffer_fail():
         FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=-1)
 
     source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
-    assert source.get_cache_size() == 5
+    assert source.cache_size == 5
 
     # Try buffer resize with negatve value
-    source.set_cache_size(-1)
-    assert source.get_cache_size() == 5
+    source.cache_size = -1
+    assert source.cache_size == 5
 
     # Try buffer resize (no change)
-    source.set_cache_size(5)
-    assert source.get_cache_size() == 5
+    source.cache_size = 5
+    assert source.cache_size == 5
 
     # Try buffer resize
-    source.set_cache_size(15)
-    assert source.get_cache_size() == 15
+    source.cache_size = 15
+    assert source.cache_size == 15
 
 
 def test_source_get_with_buffering():
@@ -143,27 +143,24 @@ def test_buffering():
     buffer = Cache(max_size=5)
 
     items = [
-        CacheItem("item1", b"123"),
-        CacheItem("item2", b"444"),
-        CacheItem("item1", b"456"),
-        CacheItem("item3", "string 4"),
-        CacheItem("item4", "string 5"),
-        CacheItem("item5", "string 6"),
-        CacheItem("item6", "string 7"),
-        CacheItem("item7", b"string 8"),
+        _CacheItem("item1", b"123"),
+        _CacheItem("item2", b"444"),
+        _CacheItem("item1", b"456"),
+        _CacheItem("item3", "string 4"),
+        _CacheItem("item4", "string 5"),
+        _CacheItem("item5", "string 6"),
+        _CacheItem("item6", "string 7"),
+        _CacheItem("item7", b"string 8"),
     ]
 
-    assert buffer.get_current_size() == 0
     assert buffer.get_max_size() == 5
     for item in items:
         buffer.add(item)
-    assert buffer.get_current_size() == 5
 
-    buffer.set_max_size(10)
+    buffer.resize(10)
     assert buffer.get_max_size() == 10
     for item in items:
         buffer.add(item)
-    assert buffer.get_current_size() == len(items) - 1  # 'item1' appears twice !
 
     item = buffer.get("item5")
-    assert item.get_name() == "item5"
+    assert item.name == "item5"

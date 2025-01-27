@@ -15,7 +15,7 @@ from urllib.error import HTTPError, URLError
 
 from loguru import logger
 
-from cache import Cache, CacheItem
+from cache import Cache, _CacheItem
 from domlib import Document
 
 
@@ -52,42 +52,21 @@ class DtbResource(ABC):
         """
         raise NotImplementedError
 
-    def _convert_data(self, data: bytes) -> Union[bytes, str]:
-        """Convert `bytes` to a `str` if possible.
+    @property
+    def cache_size(self) -> int:
+        return self._cache.get_max_size()
 
-        Args:
-            data (bytes): the input bytes.
-
-        Returns:
-            bytes | str: the returned str (or bytes).
-        """
-        try:
-            return data.decode("utf-8")
-        except UnicodeDecodeError:
-            return data
-
-    def set_cache_size(self, size: int) -> None:
-        """Resize the resource buffer.
+    @cache_size.setter
+    def cache_size(self, size: int) -> None:
+        """Resize the resource cache.
 
         Args:
             new_size (int): the new size.
         """
         self._cache.resize(size)
 
-    def get_cache_size(self) -> int:
-        return self._cache.get_max_size()
-
-    @property
-    def cache_queries(self) -> int:
-        return self._cache.queries
-
-    @property
-    def cache_hits(self) -> int:
-        return self._cache.hits
-
-    @property
-    def cache_efficiency(self) -> float:
-        return round(self._cache.efficiency, 2)
+    def activate_stats(self, value: bool) -> None:
+        self._cache.activate_stats_collection(value)
 
 
 class FolderDtbResource(DtbResource):
@@ -101,7 +80,7 @@ class FolderDtbResource(DtbResource):
 
         if self.is_web_resource:
             try:
-                urllib.request.urlopen(self.resource_base)
+                urllib.request.urlopen(self._resource_base)
             except HTTPError as e:
                 error = e.getcode() not in (200, 403)  # Code 403 is not necessary an error !
             except URLError:
@@ -119,7 +98,7 @@ class FolderDtbResource(DtbResource):
         # Try to get data from the cached resources
         cached_resource = self._cache.get(resource_name)
         if cached_resource is not None:
-            return cached_resource.get_data()
+            return cached_resource.data
 
         if self.is_web_resource:  # Get the data from the web
             try:
@@ -140,10 +119,10 @@ class FolderDtbResource(DtbResource):
                 return None
 
         # Buffer the resource
-        item = CacheItem(resource_name, data)
+        item = _CacheItem(resource_name, data)
         self._cache.add(item)
 
-        return item.get_data()
+        return item.data
 
 
 class ZipDtbResource(DtbResource):
@@ -199,4 +178,8 @@ class ZipDtbResource(DtbResource):
             logger.error(f"Error: archive {self._resource_base} does not contain file {resource_name}")
             return None
 
-        return self._convert_data(data)
+        # Try to return decoded data
+        try:
+            return data.decode("utf-8")
+        except UnicodeDecodeError:
+            return data

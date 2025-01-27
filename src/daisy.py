@@ -9,9 +9,6 @@ from domlib import Document
 from dtbsource import DtbResource
 
 
-class Navigation: ...
-
-
 @dataclass
 class MetaData:
     """Representation of metadata."""
@@ -27,30 +24,6 @@ class Reference:
 
     resource: str
     fragment: str
-
-
-@dataclass
-class NccEntry:
-    """Representation of an entry in the NCC file."""
-
-    source: DtbResource
-    id: str
-    level: int
-    smil_reference: Reference
-    text: str
-    _smil: "Smil" = None
-
-    @property
-    def smil(self) -> "Smil":
-        """Get the attached smil. Load it if needed.
-
-        Returns:
-            NewSmil: The attached smil.
-        """
-        if self._smil is None:
-            self._smil = Smil(self.source, self.smil_reference)
-            logger.debug(f"Smil set from {self.smil_reference}")
-        return self._smil
 
 
 @dataclass
@@ -88,14 +61,6 @@ class Text:
             logger.error(f"Could not retrieve element {self.reference.fragment} in the {self.reference.resource} Document.")
 
         return result
-
-
-@dataclass
-class Sequence:
-    """
-    Representation of a <seq/> section in as SMIL file.
-    The children elements of the <seq> element are displayed in a sequence, one after each other.
-    """
 
 
 @dataclass
@@ -228,43 +193,75 @@ class Smil:
 
 
 @dataclass
-class DaisyDtb:
-    """Representation of a Daisy 2.03 Digital Talking Book file"""
+class NccEntry:
+    """Representation of an entry in the NCC file."""
 
     source: DtbResource
-    metadata: List[MetaData] = field(default_factory=list)
-    entries: List[NccEntry] = field(default_factory=list)
-    smils: List[Smil] = field(default_factory=list)
-    is_valid: bool = False
+    id: str
+    level: int
+    smil_reference: Reference
+    text: str
+    _smil: Smil = None
+
+    @property
+    def smil(self) -> "Smil":
+        """Get the attached smil. Load it if needed.
+
+        Returns:
+            NewSmil: The attached smil.
+        """
+        if self._smil is None:
+            self._smil = Smil(self.source, self.smil_reference)
+            logger.debug(f"Smil set from {self.smil_reference}")
+        return self._smil
+
+
+@dataclass
+class Sequence:
+    """
+    Representation of a <seq/> section in as SMIL file.
+    The children elements of the <seq> element are displayed in a sequence, one after each other.
+    """
+
+
+@dataclass
+class DaisyDtb:
+    """Representation of a Daisy 2.02 Digital Talking Book file."""
+
+    source: DtbResource = field(default_factory=DtbResource)
+    _metadata: List[MetaData] = field(init=False, default_factory=list)
+    _entries: List[NccEntry] = field(init=False, default_factory=list)
+    _smils: List[Smil] = field(init=False, default_factory=list)
+    _is_valid: bool = field(init=False, default=False)
 
     def __post_init__(self):
         # Get the ncc.html file content
-        data = self.source.get("ncc.html")
+        ncc = self.source.get("ncc.html")
 
         # No data, no further processing !
-        if data is None or not isinstance(data, Document):
+        if ncc is None or not isinstance(ncc, Document):
             return
 
         # Populate the entries list
-        self._populate_entries(data)
+        self._populate_entries(ncc)
 
         # Populate the metadata list
-        self._populate_metadata(data)
+        self._populate_metadata(ncc)
 
         # Populate the smils list
         self._populate_smils()
 
-        self.is_valid = True
+        self._is_valid = True
 
     def _populate_metadata(self, data: Document) -> None:
         """Process and store all metadata."""
         for element in data.get_elements_by_tag_name("meta").all():
             name = element.get_attr("name")
             if name:
-                self.metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
+                self._metadata.append(MetaData(name, element.get_attr("content"), element.get_attr("scheme")))
 
     def _populate_entries(self, data: Document):
-        """Process and store the NCC entries (hx tags)."""
+        """Process and store the NCC entries (h1 ... h6 tags)."""
         body = data.get_elements_by_tag_name("body").first()
         for element in body.get_children_by_tag_name().all():
             element_name = element.name
@@ -274,21 +271,21 @@ class DaisyDtb:
                 a = element.get_children_by_tag_name("a").first()
                 src, frag = a.get_attr("href").split("#")
                 smil_reference = Reference(src, frag)
-                self.entries.append(NccEntry(self.source, id, level, smil_reference, a.text))
+                self._entries.append(NccEntry(self.source, id, level, smil_reference, a.text))
 
     def _populate_smils(self):
-        for entry in self.entries:
+        for entry in self._entries:
             smil = Smil(self.source, entry.smil_reference)
-            self.smils.append(smil)
+            self._smils.append(smil)
 
     def get_title(self) -> str:
-        for meta in self.metadata:
+        for meta in self._metadata:
             if meta.name == "dc:title":
                 return meta.content
         return ""
 
     def get_depth(self) -> int:
-        for meta in self.metadata:
+        for meta in self._metadata:
             if meta.name == "ncc:depth":
                 return int(meta.content)
         return 0

@@ -1,13 +1,12 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pprint import pprint
-import sys
 from typing import List, override
 
 from loguru import logger
 
 from base_navigator import BaseNavigator
-from daisy import DaisyDtb, NccEntry, Parallel, Smil
+from daisy import DaisyDtb, NccEntry
 from dtbsource import DtbResource, FolderDtbResource
 
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
@@ -22,6 +21,7 @@ SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 class TocNavigator(BaseNavigator):
     """
     This class provides method to navigate in table of contents of a digital talking book.
+    The TOC is provided by the ncc.html file, common in Daisy 2.02 projects.
 
     Notes :
         - It overrides the methods of its `Navigator` base class.
@@ -31,15 +31,17 @@ class TocNavigator(BaseNavigator):
     dtb: DaisyDtb
 
     # Internal attributes
-    _max_nav_level: int = 0
-    _current_nav_level: int = 0
+    _max_nav_level: int = field(init=False, default=0)
+    _current_nav_level: int = field(init=False, default=0)
 
     def __post_init__(self):
         """Postinitialitation of the dataclass.
-        - Initialize the base class
-        - Set the max. navigation level
+
+        Action(s):
+            - Initialize the base class
+            - Set the max. navigation level
         """
-        super().__init__(self.dtb.entries)
+        super().__init__(self.dtb._entries)
         self._max_nav_level = self.dtb.get_depth()
         logger.debug(f"Initialization of class {type(self)} done. Max. naigation level is {self._max_nav_level}.")
 
@@ -189,13 +191,13 @@ class TocNavigator(BaseNavigator):
 
         match format.lower():
             case "md-list":
-                for entry in self.dtb.entries:
+                for entry in self.dtb._entries:
                     result += f'{"   " * (entry.level-1)}* {entry.text}\n'
             case "md-headers":
-                for entry in self.dtb.entries:
+                for entry in self.dtb._entries:
                     result += f'{"#" * (entry.level):6} {entry.text}\n'
             case "html-headers":
-                for entry in self.dtb.entries:
+                for entry in self.dtb._entries:
                     result += f"<h{(entry.level)}>{entry.text}</h{(entry.level)}>\n"
             case _:
                 raise ValueError(f"Invalid format ({format}).")
@@ -207,7 +209,8 @@ def test_dtb(dtb: DaisyDtb) -> None:
     """Test DTB navigation"""
 
     # Resize buffer
-    dtb.source.set_cache_size(100)
+    dtb.source.cache_size = 1
+    dtb.source.activate_stats(True)
 
     nav = TocNavigator(dtb)
 
@@ -220,7 +223,7 @@ def test_dtb(dtb: DaisyDtb) -> None:
         entry = nav.next()
 
     # print(" ".join(res))
-    print(f"Cache queries: {dtb.source.cache_queries}, cache hits: {dtb.source.cache_hits}, {dtb.source.cache_efficiency*100}%")
+    pprint(f"{dtb.source._cache.get_stats()}")
 
     # for par in entry.smil.pars:
     #     print(par.text.get())
@@ -280,7 +283,7 @@ def main():
             return
 
     for source in sources:
-        source.set_cache_size(10)
+        source.cache_size = 10
         dtb = DaisyDtb(source)
         test_dtb(dtb)
 

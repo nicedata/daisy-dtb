@@ -92,7 +92,7 @@ class Element:
             return None
 
         text = self._get_text(self._xml_node)
-        print(f"Z{re.sub(r"\s+", " ", text).strip() if len(text) else None}Z")
+        print(f"{re.sub(r"\s+", " ", text).strip() if len(text) else None}")
         return re.sub(r"\s+", " ", text).strip() if len(text) else None
 
     @property
@@ -232,6 +232,10 @@ class DomFactory:
         Returns:
             Document | None: a Document or None
         """
+        # Type chack
+        if not isinstance(string, str) or len(string) == 0:
+            return None
+
         try:
             xdm_document = xdm_parse_string(string)
         except ExpatError as e:

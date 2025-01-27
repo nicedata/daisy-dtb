@@ -1,7 +1,6 @@
 """Test the cache module."""
 
-from pprint import pprint
-from cache import Cache, CacheItem
+from cache import Cache, _CacheItem
 from domlib import Document
 
 
@@ -23,10 +22,10 @@ def test_sizeing():
 
 def test_sizeing_with_elements():
     items = [
-        CacheItem("first", b"first"),
-        CacheItem("next 1", b"next 1"),
-        CacheItem("next 2", b"next 2"),
-        CacheItem("last", b"last"),
+        _CacheItem("first", b"first"),
+        _CacheItem("next 1", b"next 1"),
+        _CacheItem("next 2", b"next 2"),
+        _CacheItem("last", b"last"),
     ]
 
     cache = Cache(max_size=4)
@@ -35,11 +34,11 @@ def test_sizeing_with_elements():
     for item in items:
         cache.add(item)
 
-    assert cache.get("next 2") == CacheItem("next 2", b"next 2")
-    assert cache.get("last") == CacheItem("last", b"last")
+    assert cache.get("next 2") == _CacheItem("next 2", b"next 2")
+    assert cache.get("last") == _CacheItem("last", b"last")
 
     cache.resize(3)
-    assert cache.get("last") == CacheItem("last", b"last")
+    assert cache.get("last") == _CacheItem("last", b"last")
     assert cache.get("first") is None
 
     cache.resize(0)
@@ -57,37 +56,37 @@ def test_adding_items():
     assert cache.get_max_size() == 3
 
     # Add bytes
-    item1 = CacheItem("item 1", b"123345")
+    item1 = _CacheItem("item 1", b"123345")
     cache.add(item1)
 
     cached_item = cache.get("item 1")
     assert cached_item is item1
-    assert cached_item.get_type() is str
+    assert cached_item.type is str
 
     # Add a simple string
-    item2 = CacheItem("item 2", "ABCDEF")
+    item2 = _CacheItem("item 2", "ABCDEF")
     cache.add(item2)
 
     cached_item = cache.get("item 2")
     assert cached_item is item2
-    assert cached_item.get_type() is str
+    assert cached_item.type is str
 
     # Add an xml string
-    item3 = CacheItem("item 3", "<a>This is<b>a test</b></a>")
+    item3 = _CacheItem("item 3", "<a>This is<b>a test</b></a>")
     cache.add(item3)
 
     cached_item = cache.get("item 3")
     assert cached_item is item3
-    assert cached_item.get_type() is Document
+    assert cached_item.type is Document
 
     # Add one more xml string (should remove the first item since the cache size is 3)
-    item4 = CacheItem("item 4", "<a>This is<b>a test</b></a>")
+    item4 = _CacheItem("item 4", "<a>This is<b>a test</b></a>")
     cache.add(item4)
 
     # Item 4 tests
     cached_item = cache.get("item 4")
     assert cached_item is item4
-    assert cached_item.get_type() is Document
+    assert cached_item.type is Document
 
     # Item 1 should not be cached anymore
     cached_item = cache.get("item 1")
@@ -96,10 +95,10 @@ def test_adding_items():
 
 def test_stats():
     items = [
-        CacheItem("first", b"first"),
-        CacheItem("next 1", b"next 1"),
-        CacheItem("next 2", b"next 2"),
-        CacheItem("last", b"last"),
+        _CacheItem("first", b"first"),
+        _CacheItem("next 1", b"next 1"),
+        _CacheItem("next 2", b"next 2"),
+        _CacheItem("last", b"last"),
     ]
 
     cache = Cache(max_size=4, with_stats=True)
@@ -121,4 +120,4 @@ def test_stats():
     for i in range(12):
         cache.get("last")
 
-    print(cache.stats())
+    print(cache.get_stats())

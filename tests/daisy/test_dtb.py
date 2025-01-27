@@ -16,14 +16,14 @@ def test_ncc_load_from_filesystem():
 
     dtb = DaisyDtb(source)
     assert isinstance(dtb, DaisyDtb)
-    assert dtb.is_valid is True
-    assert len(dtb.metadata) == 30
-    assert len(dtb.entries) == 30
-    assert len(dtb.smils) == 30
+    assert dtb._is_valid is True
+    assert len(dtb._metadata) == 30
+    assert len(dtb._entries) == 30
+    assert len(dtb._smils) == 30
     assert dtb.get_title() == "Valentin Haüy - the father of the education for the blind"
 
-    dtb.smils[0].load()
-    assert dtb.smils[0]._is_loaded is True
+    dtb._smils[0].load()
+    assert dtb._smils[0]._is_loaded is True
 
 
 def test_ncc_load_from_web():
@@ -36,11 +36,11 @@ def test_ncc_load_from_web():
 
     dtb = DaisyDtb(source)
     assert isinstance(dtb, DaisyDtb)
-    assert dtb.is_valid is True
-    assert len(dtb.metadata) == 32
-    assert len(dtb.entries) == 87
-    assert len(dtb.smils) == 87
+    assert dtb._is_valid is True
+    assert len(dtb._metadata) == 32
+    assert len(dtb._entries) == 87
+    assert len(dtb._smils) == 87
     assert dtb.get_title() == "Guide pratique bénéficiaires"
 
-    dtb.smils[0].load()
-    assert dtb.smils[0]._is_loaded is True
+    dtb._smils[0].load()
+    assert dtb._smils[0]._is_loaded is True
