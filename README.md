@@ -1,8 +1,20 @@
 # A package to deal with Daisy 2.02 digital talking books
 
-Daisy 2.02 is ...
+## Introduction
 
-Since we work on some digital talking book applications, 
+DAISY (Digital Accessible Information SYstem) is a technical standard for digital audio books, periodicals and computerized text. 
+
+DAISY is designed to be a complete audio substitute for print material and is specifically designed for use by people with "print disabilities", including blindness, impaired vision, and dyslexia. Based on the MP3 and XML formats, the DAISY format has advanced features in addition to those of a traditional audio book. Users can search, place bookmarks, precisely navigate line by line, and regulate the speaking speed without distortion. DAISY also provides aurally accessible tables, references and additional information. 
+
+As a result, DAISY allows visually impaired listeners to navigate something as complex as an encyclopedia or textbook, otherwise impossible using conventional audio recordings. 
+
+DAISY multimedia can be a book, magazine, newspaper, journal, computerized text or a synchronized presentation of text and audio. It provides up to six embedded "navigation levels" for content, including embedded objects such as images, graphics, and MathML. In the DAISY standard, navigation is enabled within a sequential and hierarchical structure consisting of (marked-up) text synchronized with audio. 
+
+DAISY 2 was based on XHTML and SMIL. DAISY 3 is a newer technology, also based on XML, and is standardized as ANSI/NISO Z39.86-2005. 
+
+The DAISY Consortium was founded in 1996 and consists of international organizations committed to developing equitable access to information for people who have a print disability. The consortium was selected by the National Information Standards Organization (NISO) as the official maintenance agency for the DAISY/NISO Standard.
+
+Source : https://encyclopedia.pub/entry/33638
 
 ## Warning
 
@@ -15,14 +27,14 @@ You can install `daisy-dtb` with all common python dependancies manager.
 * With pip : ```pip install daisy-dtb```
 * With uv : ```uv add daisy-dtb```
 
-## Data sources
+## DTB data sources
 
-A Daisy 2.03 digital talking book (DTB) can be available in multiple forms :
+A Daisy 2.02 digital talking book (DTB) can be available in multiple forms :
 
-- in a filesystem folder or in a web location as individual files
-- in a ZIP archive located in a filesystem folder or on a website
+- in a file system folder or in a web location as individual files
+- in a ZIP archive located in a file system folder or on a website
 
-The base class representing this is `DtbResource` (an abstract class iheriting from `ABC`).
+The base class representing this is `DtbResource` (an abstract class inheriting from `ABC`).
 A data source must contain a Daisy 2.02 book.
 
 Two kinds of `DtbResource` classes have been implemented :

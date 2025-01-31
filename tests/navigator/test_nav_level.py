@@ -1,6 +1,6 @@
 from navigator_test_context import folder_book
 
-from develop import TocNavigator
+from navigators import TocNavigator
 
 
 def test_nav_level() -> None:

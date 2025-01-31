@@ -165,11 +165,20 @@ class ElementList:
 class Document:
     """This class represents a whole xml or html document."""
 
-    _root: xml.dom.minidom.Document = None
+    xml_node: InitVar[xml.dom.minidom.Document]
+
+    # Internal attributes
+    _xml_node: xml.dom.minidom.Element = field(init=False, default=None)
+
+    def __post_init__(self, xml_node: xml.dom.minidom.Document):
+        """Post initialization of the Document instance."""
+        if not isinstance(xml_node, xml.dom.minidom.Document):
+            return
+        self._xml_node = xml_node
 
     def get_element_by_id(self, id: str) -> Union[Element, None]:
         """Get an element by its id"""
-        for elt in self._root.getElementsByTagName("*"):
+        for elt in self._xml_node.getElementsByTagName("*"):
             if elt.getAttribute("id") == id:
                 return Element(xml_node=elt)
         return None
@@ -190,11 +199,11 @@ class Document:
         Returns:
             ElementList | None: the searched element (may be empty).
         """
-        if self._root is None:
+        if self._xml_node is None:
             return ElementList()
 
         logger.debug(f"tag_name: {tag_name}, filter: {filter}, parent_tag_name: {having_parent_tag_name}")
-        xdm_nodes = self._root.getElementsByTagName(tag_name)
+        xdm_nodes = self._xml_node.getElementsByTagName(tag_name)
 
         # Filter data
         if having_parent_tag_name:
@@ -241,7 +250,7 @@ class DomFactory:
         except ExpatError as e:
             logger.error(f"An xml.minidom parsing error occurred. The code is {e.code}.")
             return None
-        return Document(_root=xdm_document)
+        return Document(xml_node=xdm_document)
 
     @staticmethod
     def create_document_from_url(url: str) -> Union[Document, None]:
@@ -255,12 +264,25 @@ class DomFactory:
         try:
             response = urllib.request.urlopen(url)
             data = response.read()
-            return Document(_root=xdm_parse_string(data))
+            return Document(xml_node=xdm_parse_string(data))
         except HTTPError as e:
             logger.error(f"HTTP error: {e.code} {e.reason} ({url})")
         except URLError as e:
             logger.error(f"URL error: {e.reason} ({url})")
         return None
+
+    @staticmethod
+    def create_document_from_bytes(data: bytes) -> Union[Document, bytes]:
+        if not isinstance(data, bytes):
+            return data
+
+        try:
+            string = data.decode("utf-8")
+            return DomFactory.create_document_from_string(string)
+        except UnicodeDecodeError:
+            ...
+
+        return data
 
     @staticmethod
     def create_element_list(xml_nodes: List[xml.dom.minidom.Element]) -> ElementList:

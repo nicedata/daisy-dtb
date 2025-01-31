@@ -35,13 +35,10 @@ class Text:
     reference: Reference
 
     # Internal attributes
-    _content: str = None
-
-    # Internal attributes
-    _is_loaded: bool = False
+    _content: str = field(init=False, default=None)
+    _is_loaded: bool = field(init=False, default=False)
 
     def get(self) -> str:
-        result = ""
         if self._content is not None:
             logger.debug(f"Content {self.reference.resource}/{self.reference.fragment} is already present.")
             return self._content
@@ -50,7 +47,7 @@ class Text:
         data = self.source.get(self.reference.resource)
         if isinstance(data, Document) is False:
             logger.error(f"The retrieval attempt of {self.reference.resource} as Document failed.")
-            return result
+            return ""
 
         element = data.get_element_by_id(self.reference.fragment)
         if element is not None:
@@ -60,7 +57,7 @@ class Text:
         else:
             logger.error(f"Could not retrieve element {self.reference.fragment} in the {self.reference.resource} Document.")
 
-        return result
+        return ""
 
 
 @dataclass
@@ -105,12 +102,12 @@ class Smil:
 
     source: DtbResource
     reference: Reference
-    title: str = ""
-    total_duration: float = 0.0
+    title: str = field(init=True, default="")
+    total_duration: float = field(init=True, default=0.0)
 
     # Internal attributes (dynamically populated)
-    _pars: List[Parallel] = field(default_factory=list)
-    _is_loaded: bool = False
+    _pars: List[Parallel] = field(init=False, default_factory=list)
+    _is_loaded: bool = field(init=False, default=False)
 
     def __post_init__(self): ...
 
@@ -127,7 +124,7 @@ class Smil:
         for par in self._pars:
             result.append(par.text.get())
 
-        return " \n".join(result)
+        return "\n".join(result)
 
     def load(self) -> None:
         """Load a the SMIL file (if not already loaded)."""
@@ -201,7 +198,7 @@ class NccEntry:
     level: int
     smil_reference: Reference
     text: str
-    _smil: Smil = None
+    _smil: Smil = field(init=False, default=None)
 
     @property
     def smil(self) -> "Smil":
@@ -217,18 +214,10 @@ class NccEntry:
 
 
 @dataclass
-class Sequence:
-    """
-    Representation of a <seq/> section in as SMIL file.
-    The children elements of the <seq> element are displayed in a sequence, one after each other.
-    """
-
-
-@dataclass
 class DaisyDtb:
     """Representation of a Daisy 2.02 Digital Talking Book file."""
 
-    source: DtbResource = field(default_factory=DtbResource)
+    source: DtbResource
     _metadata: List[MetaData] = field(init=False, default_factory=list)
     _entries: List[NccEntry] = field(init=False, default_factory=list)
     _smils: List[Smil] = field(init=False, default_factory=list)

@@ -1,6 +1,6 @@
 import pytest
 
-from base_navigator import BaseNavigator
+from navigators import BaseNavigator
 
 
 class TestItemWithId:
@@ -108,7 +108,6 @@ def test_dict_with_id_list_navigation():
     assert nav.prev() == DICT_LIST_WITH_ID[4]
 
     # Navigate to the element with id=3
-    item = nav.navigate_to(3)
     assert nav.navigate_to(3) == DICT_LIST_WITH_ID[2]
 
 

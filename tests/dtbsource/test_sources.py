@@ -1,9 +1,17 @@
+from dataclasses import dataclass
+from typing import Any
 import pytest
 from domlib import Document
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
-from cache import Cache, _CacheItem
+from cache import Cache
+
+
+@dataclass
+class TestItem:
+    key: str
+    data: Any
 
 
 def test_source_fail():
@@ -76,7 +84,10 @@ def test_zip_source():
     source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_PATH)
 
     data = source.get("ncc.html")
-    assert isinstance(data, str)
+    assert isinstance(data, Document)
+
+    data = source.get("ncc.html")
+    assert isinstance(data, Document)
 
     data = source.get("13_Verrine_de_tiramisu_sal__au.mp3")
     assert isinstance(data, bytes)
@@ -88,7 +99,7 @@ def test_zip_source():
     source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_URL)
 
     data = source.get("stnz0037.smil")
-    assert isinstance(data, str)
+    assert isinstance(data, Document)
 
     data = source.get("13_Verrine_de_tiramisu_sal__au.mp3")
     assert isinstance(data, bytes)
@@ -140,27 +151,25 @@ def test_source_get_with_buffering():
 
 
 def test_buffering():
-    buffer = Cache(max_size=5)
+    cache = Cache(max_size=5)
 
     items = [
-        _CacheItem("item1", b"123"),
-        _CacheItem("item2", b"444"),
-        _CacheItem("item1", b"456"),
-        _CacheItem("item3", "string 4"),
-        _CacheItem("item4", "string 5"),
-        _CacheItem("item5", "string 6"),
-        _CacheItem("item6", "string 7"),
-        _CacheItem("item7", b"string 8"),
+        TestItem("item1", b"123"),
+        TestItem("item2", b"444"),
+        TestItem("item1", b"456"),
+        TestItem("item3", "string 4"),
+        TestItem("item4", "string 5"),
+        TestItem("item5", "string 6"),
+        TestItem("item6", "string 7"),
+        TestItem("item7", b"string 8"),
     ]
 
-    assert buffer.get_max_size() == 5
-    for item in items:
-        buffer.add(item)
+    assert cache.get_max_size() == 5
+    [cache.add(_.key, _.data) for _ in items]
 
-    buffer.resize(10)
-    assert buffer.get_max_size() == 10
-    for item in items:
-        buffer.add(item)
+    cache.resize(10)
+    assert cache.get_max_size() == 10
+    [cache.add(_.key, _.data) for _ in items]
 
-    item = buffer.get("item5")
-    assert item.name == "item5"
+    data = cache.get("item5")
+    assert data == "string 6"
