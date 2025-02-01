@@ -4,7 +4,7 @@ import pytest
 from daisy_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
 from daisybook import DaisyBook, DaisyBookError
-from dtbsource import FolderDtbSource
+from sources import FolderDtbSource
 
 
 def test_bool_load_failure():
@@ -29,7 +29,6 @@ def test_ncc_load_from_filesystem():
 
     dtb = DaisyBook(source)
     assert isinstance(dtb, DaisyBook)
-    assert dtb._is_valid is True
     assert len(dtb._metadata) == 30
     assert len(dtb._toc_entries) == 30
     assert len(dtb._smils) == 30
@@ -49,7 +48,6 @@ def test_ncc_load_from_web():
 
     dtb = DaisyBook(source)
     assert isinstance(dtb, DaisyBook)
-    assert dtb._is_valid is True
     assert len(dtb._metadata) == 32
     assert len(dtb._toc_entries) == 87
     assert len(dtb._smils) == 87

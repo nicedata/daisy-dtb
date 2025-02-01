@@ -1,4 +1,5 @@
-from dtb import Section
+from typing import List
+from models import Section
 from navigators.base_navigator import BaseNavigator
 
 
@@ -17,6 +18,9 @@ class SectionNavigator(BaseNavigator):
 
     def current(self) -> Section:
         return super().current()
+
+    def all(self) -> List[Section]:
+        return super().all()
 
     def navigate_to(self, item_id) -> Section:
         return super().current()

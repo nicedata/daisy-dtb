@@ -1,8 +1,9 @@
 import os
 
-from dtbsource import FolderDtbSource
+
 from develop import DaisyBook
 from navigators.toc_navigator import TocNavigator
+from sources.folder_source import FolderDtbSource
 
 SAMPLE_DTB_PROJECT_PATH = os.path.join(os.path.dirname(__file__), "../samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"

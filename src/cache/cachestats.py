@@ -55,10 +55,13 @@ class CacheStats:
         Returns:
             dict: a dictionary holding the global stats and the details
         """
+        hit_count = sum([_.hits for _ in self._items])
+        query_count = sum([_.queries for _ in self._items])
         result = {
             "cached_items": len(self._items),
-            "total_queries": sum([_.queries for _ in self._items]),
-            "total_hits": sum([_.hits for _ in self._items]),
+            "total_queries": query_count,
+            "total_hits": hit_count,
+            "cache_efficiency": hit_count / query_count if query_count else 0,
             "details": [],
         }
 

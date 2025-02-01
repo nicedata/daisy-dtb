@@ -1,7 +1,7 @@
 import pytest
 from domlib_test_context import get_ncc_document, get_smil_document
 
-from domlib import Document, Element
+from utilities.domlib import Document, Element
 
 ncc_document = get_ncc_document()
 smil_document = get_smil_document()

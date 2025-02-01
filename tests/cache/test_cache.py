@@ -1,6 +1,6 @@
 """Test the cache module."""
 
-from cache import Cache
+from cache.cache import Cache
 
 
 def test_sizeing():

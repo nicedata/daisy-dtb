@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 
 from loguru import logger
 
@@ -16,6 +16,8 @@ class BaseNavigator:
         - last() : returns the last item
         - current() : returns the current item
         - navigate_to(id) : returns the item by its id
+        - all() : return all items
+        - add_callback(func(item)) : add a callback function, triggered on navigation
 
     Note(s):
         - the navigate_to(id) method works only if the items have an 'id' attribute.
@@ -56,10 +58,12 @@ class BaseNavigator:
                 raise ValueError(error_message)
 
         # Internal attriutes
-        self._items = items
-        self._id_list: List = None
-        self._current_index = 0
-        self._max_index = len(self._items) - 1
+        self._items: List[Any] = items
+        self._id_list: List[str] = None
+        self._current_index: int = 0
+        self._max_index: int = len(self._items) - 1
+        self._on_navigate: Callable[[Any], None] = None
+
         logger.debug(f"{type(self)} instance created with {len(self._items)} element(s) of type {items_type}.")
 
         # Populate the list of ids if the attribute exists
@@ -70,6 +74,28 @@ class BaseNavigator:
             else:
                 self._id_list = [getattr(_, "id") for _ in self._items]
 
+    @property
+    def length(self) -> int:
+        return len(self._items)
+
+    def add_callback(self, func: Callable[[Any], None]) -> None:
+        """Adds a navigation callback function.
+
+        It allows to attach an external navigation handler.
+
+        Args:
+            func (Callable[[Any],Any]): a callback function which can handle the current item as a parameter.
+        """
+        self._on_navigate = func
+
+    def all(self) -> List[Any]:
+        """Return all items as a list.
+
+        Returns:
+            List[Any]: the navigator items.
+        """
+        return self._items
+
     def first(self) -> Any:
         """"""
         """Go to the first item.
@@ -78,7 +104,12 @@ class BaseNavigator:
             Any: the first item in the list.
         """
         self._current_index = 0
-        return self._items[self._current_index]
+        item = self._items[self._current_index]
+
+        if item is not None and self._on_navigate:
+            self._on_navigate(item)
+
+        return item
 
     def next(self) -> Union[Any, None]:
         """Go to the next item.
@@ -86,10 +117,15 @@ class BaseNavigator:
         Returns:
             Union[Any, None]: the next item in the list or None if no next item.
         """
+        item = None
         if self._current_index + 1 < self._max_index:
             self._current_index = self._current_index + 1
-            return self._items[self._current_index]
-        return None
+            item = self._items[self._current_index]
+
+        if item is not None and self._on_navigate:
+            self._on_navigate(item)
+
+        return item
 
     def prev(self) -> Union[Any, None]:
         """Go to the previous item.
@@ -97,10 +133,15 @@ class BaseNavigator:
         Returns:
             Union[Any, None]: the previous item in the list or None if no previous item.
         """
+        item = None
         if self._current_index - 1 >= 0:
             self._current_index = self._current_index - 1
-            return self._items[self._current_index]
-        return None
+            item = self._items[self._current_index]
+
+        if item is not None and self._on_navigate:
+            self._on_navigate(item)
+
+        return item
 
     def last(self) -> Any:
         """Go to the last item.
@@ -109,7 +150,12 @@ class BaseNavigator:
             Any: the previous item in the list.
         """
         self._current_index = self._max_index
-        return self._items[self._current_index]
+        item = self._items[self._current_index]
+
+        if item is not None and self._on_navigate:
+            self._on_navigate(item)
+
+        return item
 
     def current(self) -> Any:
         """Get the current item.
@@ -117,7 +163,9 @@ class BaseNavigator:
         Returns:
             Any: the current item.
         """
-        return self._items[self._current_index]
+        item = self._items[self._current_index]
+
+        return item
 
     def navigate_to(self, item_id: str | int) -> Union[Any, None]:
         """Navigate to a specific item based on its id.
@@ -137,9 +185,11 @@ class BaseNavigator:
             return None
 
         try:
-            result = self._items[self._id_list.index(item_id)]
-            logger.debug(f"Item with id {item_id} of type {type(result)} found.")
-            return result
+            item = self._items[self._id_list.index(item_id)]
+            logger.debug(f"Item with id {item_id} of type {type(item)} found.")
+            if item is not None and self._on_navigate:
+                self._on_navigate(item)
+            return item
         except ValueError:
             logger.debug(f"Item with id {item_id} not found.")
             return None

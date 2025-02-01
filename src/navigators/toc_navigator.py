@@ -3,9 +3,8 @@ from typing import List, override
 
 from loguru import logger
 
-from dtb import TocEntry
+from models import TocEntry
 from navigators.base_navigator import BaseNavigator
-from navigators.section_navigator import SectionNavigator
 
 
 @dataclass
@@ -25,7 +24,6 @@ class TocNavigator(BaseNavigator):
     # Internal attributes
     _max_nav_level: int = field(init=False, default=0)
     _current_nav_level: int = field(init=False, default=0)
-    _section_nav: SectionNavigator = field(init=False, default=None)
 
     def __post_init__(self):
         """Postinitialitation of the dataclass.
@@ -37,10 +35,6 @@ class TocNavigator(BaseNavigator):
         super().__init__(self.toc_entries)
         self._max_nav_level = self.navigation_depth
         logger.debug(f"Initialization of class {type(self)} done. Max. naigation level is {self._max_nav_level}.")
-
-    @property
-    def section(self) -> BaseNavigator:
-        return self._section_nav
 
     @property
     def filter_is_active(self) -> bool:
@@ -111,7 +105,6 @@ class TocNavigator(BaseNavigator):
                     break
                 item = super().next()
 
-        self._section_nav = SectionNavigator(item.smil.sections) if self._section_nav is None else self._section_nav
         return item
 
     @override
@@ -129,7 +122,6 @@ class TocNavigator(BaseNavigator):
                     break
                 item = super().prev()
 
-        self._section_nav = SectionNavigator(item.smil.sections) if self._section_nav is None else self._section_nav
         return item
 
     @override
@@ -147,7 +139,6 @@ class TocNavigator(BaseNavigator):
                     break
                 item = super().next()
 
-        self._section_nav = SectionNavigator(item.smil.sections) if item else self._section_nav
         return item
 
     @override
@@ -165,7 +156,6 @@ class TocNavigator(BaseNavigator):
                     break
                 item = super().prev()
 
-        self._section_nav = SectionNavigator(item.smil.sections) if item else self._section_nav
         return item
 
     def generate_toc(self, format: str) -> str:

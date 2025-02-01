@@ -1,4 +1,5 @@
-from dtb import Audio
+from typing import List
+from models import Audio
 from navigators.base_navigator import BaseNavigator
 
 
@@ -17,6 +18,9 @@ class ClipNavigator(BaseNavigator):
 
     def current(self) -> Audio:
         return super().current()
+
+    def all(self) -> List[Audio]:
+        return super().all()
 
     def navigate_to(self, item_id) -> Audio:
         return super().current()

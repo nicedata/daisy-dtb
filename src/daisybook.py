@@ -5,10 +5,10 @@ from typing import List
 
 from loguru import logger
 
-from domlib import Document
-from dtb import MetaData, Reference, Smil, TocEntry
-from dtbsource import DtbSource
-from navigators.toc_navigator import TocNavigator
+from utilities.domlib import Document
+
+from models import MetaData, Reference, Smil, TocEntry
+from sources.source import DtbSource
 
 
 class DaisyBookError(Exception):
@@ -27,7 +27,6 @@ class DaisyBook:
     _navigation_depth: int = field(init=False, default=0)
     _metadata: List[MetaData] = field(init=False, default_factory=list)
     _toc_entries: List[TocEntry] = field(init=False, default_factory=list)
-    _toc_navigator: TocNavigator = field(init=False, default=None)
     _smils: List[Smil] = field(init=False, default_factory=list)
 
     def __post_init__(self):
@@ -58,16 +57,9 @@ class DaisyBook:
                 case "ncc:depth":
                     self._navigation_depth = int(meta.content)
 
-        # Add a TOC navigator
-        self._toc_navigator = TocNavigator(self._toc_entries, self.navigation_depth)
-
     @property
     def cache_stats(self) -> dict:
         return self.source._cache.get_stats()
-
-    @property
-    def toc(self) -> TocNavigator:
-        return self._toc_navigator
 
     @property
     def title(self) -> str:

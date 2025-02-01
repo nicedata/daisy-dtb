@@ -5,9 +5,12 @@ from typing import List
 from getkey import getkey
 from loguru import logger
 
-from daisybook import DaisyBook, TocEntry
-from dtbsource import DtbSource, FolderDtbSource
-from logconfig import LogLevel
+from daisybook import DaisyBook
+
+from utilities.logconfig import LogLevel
+from navigators.book_navigator import BookNavigator
+from sources.folder_source import FolderDtbSource
+from sources.source import DtbSource
 
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../tests/samples/local/vf_2024_02_09")
@@ -127,12 +130,41 @@ def test_dtb(dtb: DaisyBook) -> None:
     # #     item = smilnav.next()
 
 
+def book_nav(book: DaisyBook):
+    print(book.title)
+    bn = BookNavigator(book)
+    x = bn.clips.current()
+    print(x)
+    return
+
+    entry = bn.toc.first()
+
+    while entry is not None:
+        section = bn.sections.first()
+        while section is not None:
+            clip = bn.clips.first()
+            while clip is not None:
+                print(f"{section.text.content:50.50s} : {clip.id} - {clip.src}")
+                clip.data
+                clip = bn.clips.next()
+            section = bn.sections.next()
+        entry = bn.toc.next()
+
+    pprint(book.cache_stats)
+
+    # for clip in bn.clips.all():
+    #     print(clip)
+    # bn.toc.first()
+    # bn.sections.first()
+    # bn.clips.first()
+
+
 def main():
-    LogLevel.set(LogLevel.ERROR)
+    LogLevel.set(LogLevel.DEBUG)
 
     """Perform tests"""
     paths = [SAMPLE_DTB_PROJECT_PATH_1, SAMPLE_DTB_PROJECT_PATH_2, SAMPLE_DTB_PROJECT_URL]
-    paths = [SAMPLE_DTB_PROJECT_PATH_1]
+    paths = [SAMPLE_DTB_PROJECT_PATH_2]
     sources: List[DtbSource] = []
 
     for path in paths:
@@ -143,10 +175,11 @@ def main():
             return
 
     for source in sources:
-        source.cache_size = 10
+        source.cache_size = 50
         source.enable_stats(True)
         dtb = DaisyBook(source)
-        test_dtb(dtb)
+        # test_dtb(dtb)
+        book_nav(dtb)
 
 
 if __name__ == "__main__":
