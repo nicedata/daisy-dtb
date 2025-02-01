@@ -17,13 +17,13 @@ from domlib import Document, DomFactory
 from fetcher import Fetcher
 
 
-class DtbResource(ABC):
-    def __init__(self, resource_base: str, initial_cache_size=0) -> None:
-        """Creates a new `DtbResource`.
+class DtbSource(ABC):
+    def __init__(self, base_path: str, initial_cache_size=0) -> None:
+        """Creates a new `DtbSource`.
 
         Args:
-            resource_base (str): a filesystem folder or a web site
-            initial_cache_size (int, optional): the size of the resource buffer. Defaults to 0.
+            base_path (str): a filesystem folder or a web site
+            initial_cache_size (int, optional): the size of the resource cache. Defaults to 0.
 
         Raises:
             ValueError: if the requested cache size is less than 0.
@@ -31,8 +31,12 @@ class DtbResource(ABC):
         if initial_cache_size < 0:
             raise ValueError("The cache size cannot be negative.")
 
-        self._resource_base = resource_base
+        self._base_path = base_path
         self._cache = Cache(max_size=initial_cache_size)
+
+    @property
+    def base_path(self) -> str:
+        return self._base_path
 
     @property
     def cache_size(self) -> int:
@@ -91,37 +95,34 @@ class DtbResource(ABC):
             key (str): the key.
             data (Any): the data to cache.
         """
-        if self.cache_size > 0:
-            self._cache.add(key, data)
-            logger.debug(f"Resource {key} added to the cache as {type(data)}.")
+        self._cache.add(key, data)
 
     def enable_stats(self, value: bool) -> None:
         self._cache.enable_stats(value)
 
 
-class FolderDtbResource(DtbResource):
+class FolderDtbSource(DtbSource):
     """This class gets data from a filesystem folder or a web location"""
 
-    def __init__(self, resource_base: str, initial_cache_size=0) -> None:
-        resource_base = resource_base if resource_base.endswith("/") else f"{resource_base}/"
-        super().__init__(resource_base, initial_cache_size)
+    def __init__(self, base_path: str, initial_cache_size=0) -> None:
+        base_path = base_path if base_path.endswith("/") else f"{base_path}/"
+        super().__init__(base_path, initial_cache_size)
 
-        if Fetcher.is_available(resource_base) is False:
+        if Fetcher.is_available(base_path) is False:
             raise FileNotFoundError
 
-    def get(self, resource_name: str) -> Union[bytes, str, Document, None]:
-        path = f"{self._resource_base}{resource_name}"
+    def get(self, resource_name: str) -> Union[bytes, Document, None]:
+        path = f"{self._base_path}{resource_name}"
 
         # Try to get data from the cached resources
-        if self.cache_size > 0:
-            cached_data = self._cache.get(resource_name)
-            if cached_data is not None:
-                return cached_data
+        cached_data = self._cache.get(resource_name)
+        if cached_data is not None:
+            return cached_data
 
         data = Fetcher.fetch(path)
 
         # Try to create a Document
-        doc = DtbResource.convert_to_document(data)
+        doc = DtbSource.convert_to_document(data)
 
         # Eventualy cache the resource
         self.do_cache(resource_name, doc)
@@ -129,41 +130,41 @@ class FolderDtbResource(DtbResource):
         return doc
 
 
-class ZipDtbResource(DtbResource):
+class ZipDtbSource(DtbSource):
     """This class gets data from a ZIP archive (from the filesystem or a web location)."""
 
-    def __init__(self, resource_base) -> None:
-        super().__init__(resource_base, 0)
+    def __init__(self, base_path) -> None:
+        super().__init__(base_path, 0)
         self.bytes_io: BytesIO = None
 
-        if Fetcher.is_available(resource_base) is False:
+        if Fetcher.is_available(base_path) is False:
             raise FileNotFoundError
 
         # Get the zip data
-        self.bytes_io = BytesIO(Fetcher.fetch(resource_base))
+        self.bytes_io = BytesIO(Fetcher.fetch(base_path))
 
         # Check if we have a good ZIP file
         if zipfile.is_zipfile(self.bytes_io):
-            logger.debug(f"{resource_base} is a valid ZIP archive.")
+            logger.debug(f"{base_path} is a valid ZIP archive.")
         else:
             raise FileNotFoundError
 
-    def get(self, resource_name: str) -> bytes | str | None:
+    def get(self, resource_name: str) -> Union[bytes, Document, None]:
         # Try to get data from the cached resources
         cached_data = self._cache.get(resource_name)
         if cached_data is not None:
             return cached_data
 
         # Retrieve the resource fron the ZIP file
-        with zipfile.ZipFile(self.bytes_io, mode="rb") as archive:
+        with zipfile.ZipFile(self.bytes_io, mode="r") as archive:
             try:
                 data = archive.read(resource_name)
             except KeyError:
-                logger.error(f"Error: archive {self._resource_base} does not contain file {resource_name}")
+                logger.error(f"Error: archive {self._base_path} does not contain file {resource_name}")
                 return None
 
         # Try to create a Document
-        doc = DtbResource.convert_to_document(data)
+        doc = DtbSource.convert_to_document(data)
 
         # Eventualy cache the resource
         self.do_cache(resource_name, doc)

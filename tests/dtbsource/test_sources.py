@@ -4,7 +4,7 @@ import pytest
 from domlib import Document
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
-from dtbsource import DtbResource, FolderDtbResource, ZipDtbResource
+from dtbsource import DtbSource, FolderDtbSource, ZipDtbSource
 from cache import Cache
 
 
@@ -17,29 +17,29 @@ class TestItem:
 def test_source_fail():
     # Should fail (Cannot create abstract class instance)
     with pytest.raises(TypeError):
-        DtbResource(resource_base="any")
+        DtbSource(base_path="any")
 
 
 def test_file_source_fail():
     # Should fail (FileNotFound exception)
     with pytest.raises(FileNotFoundError):
-        FolderDtbResource(resource_base=UNEXISTING_PATH)
+        FolderDtbSource(base_path=UNEXISTING_PATH)
 
 
 def test_web_source_fail():
     # Should fail (FileNotFound exception)
     with pytest.raises(FileNotFoundError):
-        FolderDtbResource(resource_base=UNEXISTING_URL)
+        FolderDtbSource(base_path=UNEXISTING_URL)
 
 
 def test_web_source_success():
     # Should succeed
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
-    assert isinstance(source, FolderDtbResource)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_URL)
+    assert isinstance(source, FolderDtbSource)
 
 
 def test_file_source():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_PATH)
 
     # Get a string - should work
     data = source.get("ncc.html")
@@ -55,7 +55,7 @@ def test_file_source():
 
 
 def test_web_source():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_URL)
 
     # Get a string - should work
     data = source.get("ncc.html")
@@ -73,15 +73,15 @@ def test_web_source():
 def test_zip_source_fail():
     # Should fail (FileNotFound exception)
     with pytest.raises(FileNotFoundError):
-        ZipDtbResource(resource_base=UNEXISTING_ZIP)
+        ZipDtbSource(base_path=UNEXISTING_ZIP)
 
     with pytest.raises(FileNotFoundError):
-        ZipDtbResource(resource_base=UNEXISTING_URL)
+        ZipDtbSource(base_path=UNEXISTING_URL)
 
 
 def test_zip_source():
     # Tests with an existing filesystem archive
-    source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_PATH)
+    source = ZipDtbSource(base_path=SAMPLE_DTB_ZIP_PATH)
 
     data = source.get("ncc.html")
     assert isinstance(data, Document)
@@ -96,7 +96,7 @@ def test_zip_source():
     assert source.get("unexisting.file") is None
 
     # Tests with an existing web archive
-    source = ZipDtbResource(resource_base=SAMPLE_DTB_ZIP_URL)
+    source = ZipDtbSource(base_path=SAMPLE_DTB_ZIP_URL)
 
     data = source.get("stnz0037.smil")
     assert isinstance(data, Document)
@@ -108,18 +108,18 @@ def test_zip_source():
 
 
 def test_source_with_buffer():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, initial_cache_size=22)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_URL, initial_cache_size=22)
     assert source.cache_size == 22
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=10)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=10)
     assert source.cache_size == 10
 
 
 def test_source_with_buffer_fail():
     with pytest.raises(ValueError):
-        FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=-1)
+        FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=-1)
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
     assert source.cache_size == 5
 
     # Try buffer resize with negatve value
@@ -136,14 +136,14 @@ def test_source_with_buffer_fail():
 
 
 def test_source_get_with_buffering():
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_PATH, initial_cache_size=5)
     data = source.get("hauy_0001.smil")
     data = source.get("hauy_0002.smil")
     data = source.get("hauy_0001.smil")
     data = source.get("hauy_0002.smil")
     assert isinstance(data, Document) is True
 
-    source = FolderDtbResource(resource_base=SAMPLE_DTB_PROJECT_URL, initial_cache_size=1)
+    source = FolderDtbSource(base_path=SAMPLE_DTB_PROJECT_URL, initial_cache_size=1)
     data = source.get("ncc.html")
     assert isinstance(data, Document) is True
     data = source.get("04_Mission_et_valeurs.mp3")
@@ -164,11 +164,11 @@ def test_buffering():
         TestItem("item7", b"string 8"),
     ]
 
-    assert cache.get_max_size() == 5
+    assert cache.maxlen == 5
     [cache.add(_.key, _.data) for _ in items]
 
     cache.resize(10)
-    assert cache.get_max_size() == 10
+    assert cache.maxlen == 10
     [cache.add(_.key, _.data) for _ in items]
 
     data = cache.get("item5")

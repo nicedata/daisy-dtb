@@ -22,14 +22,14 @@ Source : https://encyclopedia.pub/entry/33638
 
 ## Installation
 
-You can install `daisy-dtb` with all common python dependancies manager.
+You can install `daisy-dtb` with all common python dependencies manager.
 
 * With pip : ```pip install daisy-dtb```
 * With uv : ```uv add daisy-dtb```
 
 ## DTB data sources
 
-A Daisy 2.02 digital talking book (DTB) can be available in multiple forms :
+A Daisy 2.02 digital talking book (DTB) can come in multiple forms :
 
 - in a file system folder or in a web location as individual files
 - in a ZIP archive located in a file system folder or on a website

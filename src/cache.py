@@ -126,12 +126,12 @@ class Cache:
             # Check if item exists and update the current data
             item_index = [_.key for _ in self._items].index(key)
             self._items[item_index].data = data
-            logger.debug(f"Item '{key}' in the cache (index={item_index}) has been updated.")
+            logger.debug(f"Resource '{key}' in the cache (index={item_index}) has been updated.")
             return
         except ValueError:
             # Otherwise append the item
             self._items.append(_CacheItem(key, data))
-            logger.debug(f"Item '{key}' added into the cache.")
+            logger.debug(f"Item '{key}' added into the cache as {type(data)}.")
 
     def get(self, key: str) -> Any | None:
         """Get data from the cache.

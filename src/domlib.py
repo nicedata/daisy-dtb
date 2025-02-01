@@ -53,6 +53,7 @@ class Element:
                     # Recurse here !
                     _text = self._get_text(child, _text)
                 case _:
+                    # Do nothing !
                     ...
 
         return _text
@@ -92,7 +93,6 @@ class Element:
             return None
 
         text = self._get_text(self._xml_node)
-        print(f"{re.sub(r"\s+", " ", text).strip() if len(text) else None}")
         return re.sub(r"\s+", " ", text).strip() if len(text) else None
 
     @property
@@ -112,7 +112,8 @@ class Element:
         if self.is_void:
             return None
 
-        return None if self.is_void else self._xml_node.getAttribute(attr)
+        attr = self._xml_node.getAttribute(attr)
+        return attr if attr else None
 
     def get_children_by_tag_name(self, tag_name: Optional[str] = "") -> Union["ElementList", None]:
         """Get all child elements by tag name (or all if no tag_name is specified).
@@ -230,7 +231,7 @@ class Document:
 
 
 class DomFactory:
-    """This class holds a collection of static methods to create class instances."""
+    """This class holds a collection of static methods to create various class instances."""
 
     @staticmethod
     def create_document_from_string(string: str) -> Union[Document, None]:

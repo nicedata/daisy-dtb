@@ -3,7 +3,7 @@ from fetcher_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
 
 def test_availability():
-    assert Fetcher.is_available(b"bytes should fail") is False
+    assert Fetcher.is_available(b"invalid argument type") is False
 
     assert Fetcher.is_available(SAMPLE_DTB_PROJECT_PATH) is True
     assert Fetcher.is_available(SAMPLE_DTB_PROJECT_URL) is True
@@ -35,6 +35,6 @@ def test_fetch():
     assert len(data) == 0
     assert isinstance(data, bytes)
 
-    data = Fetcher.fetch(b"bytes should fail")
+    data = Fetcher.fetch(b"invalid argument type")
     assert len(data) == 0
     assert isinstance(data, bytes)

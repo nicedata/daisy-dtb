@@ -22,6 +22,7 @@ class _CacheStatItem:
 
 @dataclass
 class CacheStats:
+    # Private attributs
     _items: List[_CacheStatItem] = field(init=False, default_factory=list)
 
     def hit(self, resource_name: str) -> None:

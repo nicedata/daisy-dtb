@@ -27,11 +27,9 @@ def get_smil_string() -> str | None:
 
 def get_ncc_document() -> Document | None:
     "Get a document for the tests"
-
     return DomFactory.create_document_from_string(get_ncc_string())
 
 
 def get_smil_document() -> Document | None:
     "Get a document for the tests"
-
     return DomFactory.create_document_from_string(get_smil_string())

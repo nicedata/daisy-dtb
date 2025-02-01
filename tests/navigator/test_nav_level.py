@@ -1,10 +1,10 @@
 from navigator_test_context import folder_book
 
-from navigators import TocNavigator
+from navigators.toc_navigator import TocNavigator
 
 
 def test_nav_level() -> None:
-    nav = TocNavigator(folder_book)
+    nav = TocNavigator(folder_book._toc_entries, folder_book.navigation_depth)
 
     # This book has a depth of 3
     assert nav._max_nav_level == 3
@@ -28,7 +28,7 @@ def test_nav_level() -> None:
 
 
 def test_level_navigation_first_to_last() -> None:
-    nav = TocNavigator(folder_book)
+    nav = TocNavigator(folder_book._toc_entries, folder_book.navigation_depth)
 
     # No level filtering
     assert nav.get_nav_level() == 0
@@ -64,7 +64,7 @@ def test_level_navigation_first_to_last() -> None:
 
 
 def test_level_navigation_last_to_first() -> None:
-    nav = TocNavigator(folder_book)
+    nav = TocNavigator(folder_book._toc_entries, folder_book.navigation_depth)
 
     # No level filtering
     assert nav.get_nav_level() == 0
