@@ -3,7 +3,7 @@
 import pytest
 from daisy_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
-from daisybook import DaisyBook, DaisyBookError
+from daisybook import DaisyBook, DaisyBookException
 from sources import FolderDtbSource
 
 
@@ -15,7 +15,7 @@ def test_bool_load_failure():
 
     # Maniputate the source base path to generate an error :-)
     source._base_path = "X"
-    with pytest.raises(DaisyBookError):
+    with pytest.raises(DaisyBookException):
         DaisyBook(source)
 
 

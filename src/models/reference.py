@@ -18,7 +18,7 @@ class Reference:
 
 
         Returns:
-            Union["Reference", None]: the Reference.
+            Union[Reference, None]: the Reference.
         """
         if "#" not in string:
             return None

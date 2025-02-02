@@ -27,10 +27,6 @@ class TocEntry:
         self._smil = Smil(self.source, self.smil_reference)
         logger.debug(f"Smil set from {self.smil_reference}")
 
-    # @property
-    # def sections(self) -> SectionNavigator:
-    #     self._smil._section_nav
-
     @property
     def smil(self) -> "Smil":
         """Get the attached SMIL.

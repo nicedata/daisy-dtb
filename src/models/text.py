@@ -21,6 +21,14 @@ class Text:
 
     @property
     def content(self) -> str:
+        """Get the text fragment identified by the reference.
+
+        Note:
+        - To avoid multiple resource accesses, the text is loaded from the source only once.
+
+        Returns:
+            str: the text fragment
+        """
         if self._content is None:
             self._parse()
         return self._content

@@ -21,7 +21,13 @@ classifiers = [
 dependencies = ["loguru>=0.7.3"]
 
 [dependency-groups]
-dev = ["getkey>=0.6.5", "pylint>=3.3.3", "pytest>=8.3.4", "pytest-cov>=6.0.0"]
+dev = [
+    "getkey>=0.6.5",
+    "pygame>=2.6.1",
+    "pylint>=3.3.3",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/nicedata/daisy-dtb"

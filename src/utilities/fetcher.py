@@ -1,5 +1,6 @@
 """Resources operations"""
 
+from dataclasses import dataclass, field
 from http.client import HTTPResponse
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -8,6 +9,7 @@ from loguru import logger
 import urllib
 
 
+@dataclass
 class Fetcher:
     """This class provides static methods to
     - check resource availability
@@ -16,8 +18,25 @@ class Fetcher:
     It automatically handles the location of the resource (file system or web).
     """
 
+    fetched_bytes: int = field(init=False, default=0)
+    access_count: int = field(init=False, default=0)
+
     @staticmethod
-    def _is_web_resource(resource_path: str) -> bool:
+    def get_stats() -> dict:
+        """Get the fetcher statistics.
+
+        Returns:
+            dict: a dict with following keys:
+            - "access_count" : the number of times the fetcher was used.
+            - "fetched_bytes" : the number of retrieved bytes.
+        """
+        return {
+            "access_count": Fetcher.access_count,
+            "fetched_bytes": Fetcher.fetched_bytes,
+        }
+
+    @staticmethod
+    def is_on_web(resource_path: str) -> bool:
         """Test if the resource is located on the web.
 
         Args:
@@ -45,7 +64,8 @@ class Fetcher:
             logger.debug("No valid data supplied.")
             return False
 
-        if Fetcher._is_web_resource(resource_path):
+        Fetcher.access_count += 1
+        if Fetcher.is_on_web(resource_path):
             # Check web availability
             try:
                 response = urllib.request.urlopen(resource_path)
@@ -57,13 +77,13 @@ class Fetcher:
                     return False
             except HTTPError as e:
                 error_code = e.getcode()
-                if error_code in (200, 403):  # Code 403 is not necessary an error !
+                if error_code in (200, 403):  # Code 403 is not necessarily an error !
                     logger.debug(f"Web check success. Error code is {error_code}. Codes 200 and 403 are OK.")
                     return True
                 logger.debug(f"Web check fails. Error code is {error_code}.")
                 return False
             except URLError:
-                logger.debug(f"Web check fails wit an URL error. The URL is {resource_path}.")
+                logger.debug(f"Web check fails wit an URL error. The failing URL is {resource_path}.")
                 return False
         else:
             # Check file system availability
@@ -84,18 +104,21 @@ class Fetcher:
         Returns:
             bytes: the fetched bytes (or b'').
         """
+        Fetcher.access_count += 1
+
         logger.debug(f"Fetching '{resource_path}'.")
         # Check
         if not isinstance(resource_path, str):
             logger.debug("No valid data supplied.")
             return b""
 
-        if Fetcher._is_web_resource(resource_path):
+        if Fetcher.is_on_web(resource_path):
             # Get data from web
             try:
                 response = urllib.request.urlopen(resource_path)
                 if isinstance(response, HTTPResponse) and response.getcode() == 200:
                     data = response.read()
+                    Fetcher.fetched_bytes += len(data)
                     logger.debug(f"Fetched {len(data)} bytes from {resource_path}.")
                     return data
                 else:
@@ -109,6 +132,7 @@ class Fetcher:
             try:
                 with open(resource_path, "rb") as file:
                     data = file.read()
+                    Fetcher.fetched_bytes += len(data)
                     logger.debug(f"Fetched {len(data)} bytes from {resource_path}.")
                     return data
             except FileNotFoundError:

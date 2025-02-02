@@ -22,5 +22,6 @@ class Audio:
         return self.end - self.begin
 
     @property
-    def data(self) -> bytes:
+    def sound(self) -> bytes:
+        """Get the actual sound data (.wav, .mp3, ...)"""
         return self.source.get(self.src)

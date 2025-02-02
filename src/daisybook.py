@@ -11,7 +11,7 @@ from models import MetaData, Reference, Smil, TocEntry
 from sources.source import DtbSource
 
 
-class DaisyBookError(Exception):
+class DaisyBookException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
@@ -37,7 +37,7 @@ class DaisyBook:
         if ncc_document is None or not isinstance(ncc_document, Document):
             message = f"Could not process {self.source.base_path}."
             logger.critical(message)
-            raise DaisyBookError(f"Could not process {message}.")
+            raise DaisyBookException(f"Could not process {message}.")
 
         # Populate the entries list
         self._populate_entries(ncc_document)

@@ -18,7 +18,25 @@ Source : https://encyclopedia.pub/entry/33638
 
 ## Warning
 
-**This package (also published to PyPi) is still under active development (alpha stage).**
+**This package (also published to PyPi) is still under active development (alpha stage). <br/>Do NOT use it in production !**
+
+## Dependencies
+
+You will find all information in thy `project.toml` file.
+
+In production, we use following packages :
+
+- `loguru`  : https://github.com/Delgan/loguru
+
+For development, following additional packages are used :
+
+- `pytest` : https://docs.pytest.org/en/stable/
+- `pylint` : https://www.pylint.org/
+- `pytest-cov` : https://pypi.org/project/pytest-cov/
+- `getkey` : https://github.com/kcsaff/getkey
+- `pygame`  : https://www.pygame.org/news
+
+Thanks to all these guys helping us to develop nice software and letting us have fun doing it !
 
 ## Installation
 
@@ -26,6 +44,74 @@ You can install `daisy-dtb` with all common python dependencies manager.
 
 * With pip : ```pip install daisy-dtb```
 * With uv : ```uv add daisy-dtb```
+
+## Code organization
+
+```
+src
+├── models            # Models (classes) used to refresent Daisy 2.02 data structures
+│   ├── toc_entry.py  # Class TocEntry (extracted from the NCC.html file)
+│   ├── metadata.py   # Class MetaData (extracted from the NCC.html file <meta/> tags)
+│   ├── reference.py  # Representation of a resource#fragment (href or src attribute) 
+│   ├── section.py    # Section
+│   ├── smil.py       # Representation of a SMIL file
+│   ├── text.py       # Representation of a text fragment
+│   └── audio.py      # Representation of an audio clip
+│
+├── navigators               # Classes to implement Book navigation features 
+│   ├── base_navigator.py    # The base class
+│   ├── toc_navigator.py	 # Navigation in the table of content (TOC)
+│   ├── section_navigator.py # Navigation in the TOC sections
+│   ├── clip_navigator.py    # Navigation in the section audio clips
+│   └── book_navigator.py    # Navigation in the book (TOC, sections, clips)
+│
+├── sources              # Classes to represent the datasources
+│   ├── source.py        # Base class
+│   ├── folder_source.py # Folder based source (Web or filesystem)
+│   └── zip_source.py    # Zip based source (Web or filesystem)
+│
+├── cache              # Data cache
+│   ├── cache.py       # Data cache classes
+│   └── cachestats.py  # Cache statistics
+│
+├── utilities        # Utilities 
+│   ├── domlib.py    # Classes to encapsulate and simplify the usage of the xml.dom.minidom library  
+│   ├── fetcher.py   # Data fetcher to get resources (Web or filesystem)
+│   └── logconfig.py # Logging configuration, log level setting
+│
+├── daisybook.py  # Representation of the Daisy 2.02 DTB (classes DaisyBook and DaisyBookError)        
+└── develop.py    # The programmers sandbox
+```
+
+## Logging
+
+For logging, we use the `loguru` package (https://github.com/Delgan/loguru). We used logging a lot to develop this piece of software.
+
+To completely turn of logging, do the following in your code :
+
+```python
+from loguru import logger
+from utilities.logconfig import LogLevel
+....
+# Set logging level
+LogLevel.set(LogLevel.NONE)
+....
+```
+
+Alternatively, you can turn logging on (debug) :
+
+```python
+from loguru import logger
+from utilities.logconfig import LogLevel
+....
+# Set logging level
+LogLevel.set(LogLevel.DEBUG)
+....	
+```
+
+
+
+
 
 ## DTB data sources
 
