@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from io import BytesIO
 
 from sources.source import DtbSource
 
@@ -21,7 +22,6 @@ class Audio:
         """Get the duration of a clip, in seconds."""
         return self.end - self.begin
 
-    @property
-    def sound(self) -> bytes:
+    def get_sound(self, as_bytes_io: bool = False) -> bytes:
         """Get the actual sound data (.wav, .mp3, ...)"""
-        return self.source.get(self.src)
+        return BytesIO(self.source.get(self.src)) if as_bytes_io is True else self.source.get(self.src)

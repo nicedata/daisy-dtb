@@ -12,6 +12,8 @@ from sources.source import DtbSource
 
 
 class DaisyBookException(Exception):
+    """Daisy Book Exception class."""
+
     def __init__(self, message):
         super().__init__(message)
 
