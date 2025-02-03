@@ -1,4 +1,4 @@
-"""Working with metadata"""
+"""Working with book metadata"""
 
 import os
 import sys
@@ -11,7 +11,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 
 # Import daisy-dtb modules
 from daisybook import DaisyBook
-from navigators.book_navigator import BookNavigator
 from sources.folder_source import FolderDtbSource
 from sources.source import DtbSource
 from utilities.logconfig import LogLevel
@@ -25,10 +24,45 @@ SAMPLE_DTB_PROJECT_URL = "https://www.daisyplayer.ch/aba-data/GuidePratique"
 
 PROJECTS = [SAMPLE_DTB_PROJECT_PATH_1, SAMPLE_DTB_PROJECT_PATH_2, SAMPLE_DTB_PROJECT_URL]
 
+LogLevel.set(LogLevel.NONE)
 
-def list_all_metadata(book: DaisyBook):
-    for meta in book.metadata:
-        print(meta)
+
+def list_metadata(book: DaisyBook):
+    """List book metadata.
+
+    Args:
+        book (DaisyBook): the book.
+    """
+    print("-" * len(book.title))
+    print(book.title)
+    print("-" * len(book.title))
+
+    print("Dublin Core metadata:\n")
+    metadata = book.dc_metadata
+    if len(metadata) == 0:
+        print("No DC metadata found.")
+    else:
+        for meta in metadata:
+            print(meta)
+    print()
+
+    print("Navigation Control Center metadata:\n")
+    metadata = book.ncc_metadata
+    if len(metadata) == 0:
+        print("No NCC metadata found.")
+    else:
+        for meta in metadata:
+            print(meta)
+    print()
+
+    print("Other metadata:\n")
+    metadata = book.other_metadata
+    if len(metadata) == 0:
+        print("No Other metadata found.")
+    else:
+        for meta in metadata:
+            print(meta)
+    print()
 
 
 if __name__ == "__main__":
@@ -44,4 +78,4 @@ if __name__ == "__main__":
         source.cache_size = 50
         source.enable_stats(True)
         daisy_book = DaisyBook(source)
-        list_all_metadata(daisy_book)
+        list_metadata(daisy_book)

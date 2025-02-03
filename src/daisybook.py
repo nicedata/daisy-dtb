@@ -1,7 +1,7 @@
 """Daisy library"""
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Union
 
 from loguru import logger
 
@@ -78,8 +78,36 @@ class DaisyBook:
         return self.smils
 
     @property
-    def toc_entries(self) -> int:
+    def toc_entries(self) -> List[TocEntry]:
         return self._toc_entries
+
+    @property
+    def dc_metadata(self) -> List[MetaData]:
+        return [_ for _ in self._metadata if _.name.startswith("dc:") and _.content is not None]
+
+    @property
+    def ncc_metadata(self) -> List[MetaData]:
+        return [_ for _ in self._metadata if _.name.startswith("ncc:") and _.content is not None]
+
+    @property
+    def other_metadata(self) -> List[MetaData]:
+        return [_ for _ in self._metadata if not _.name.startswith("dc:") and not _.name.startswith("ncc:") and _.content is not None]
+
+    @property
+    def langage(self) -> str:
+        metadata = self.get_metadata("dc:language")
+        return metadata.content if metadata else ""
+
+    @property
+    def charset(self) -> str:
+        metadata = self.get_metadata("ncc:charset")
+        return metadata.content if metadata else ""
+
+    def get_metadata(self, name: str) -> Union[MetaData | None]:
+        metadata = [_ for _ in self._metadata if _.name == name]
+        if len(metadata) == 1:
+            return metadata[0]
+        return None
 
     def _populate_entries(self, ncc_document: Document):
         """Process and store the NCC entries (h1 ... h6 tags)."""
