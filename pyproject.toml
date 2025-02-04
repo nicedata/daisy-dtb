@@ -26,6 +26,7 @@ dev = [
     "pygame>=2.6.1",
     "pygame-widgets>=1.1.6",
     "pylint>=3.3.3",
+    "pyside6>=6.8.2",
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
 ]

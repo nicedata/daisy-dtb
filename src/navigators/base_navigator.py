@@ -127,13 +127,11 @@ class BaseNavigator:
 
         return item
 
-    def can_go_next(self) -> bool:
-        """Test if it is possible to navigate to the next item.
+    def is_last(self) -> bool:
+        return self._current_index == self._max_index
 
-        Returns:
-            bool: True if OK, otherwise False.
-        """
-        return self._current_index + 1 < self._max_index
+    def is_first(self) -> bool:
+        return self._current_index == 0
 
     def prev(self) -> Union[Any, None]:
         """Go to the previous item.
@@ -150,14 +148,6 @@ class BaseNavigator:
             self._on_navigate(item)
 
         return item
-
-    def can_go_prev(self) -> bool:
-        """Test if it is possible to navigate to the previous item.
-
-        Returns:
-            bool: True if OK, otherwise False.
-        """
-        return self._current_index - 1 >= 0
 
     def last(self) -> Any:
         """Go to the last item.
