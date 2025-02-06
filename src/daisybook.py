@@ -20,7 +20,11 @@ class DaisyBookException(Exception):
 
 @dataclass
 class DaisyBook:
-    """Representation of a Daisy 2.02 Digital Talking Book file."""
+    """Representation of a Daisy 2.02 Digital Talking Book file.
+
+    Raises:
+        DaisyBookException: this exception is raised when the instance cannot be set up.
+    """
 
     source: DtbSource
 

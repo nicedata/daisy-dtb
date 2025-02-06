@@ -38,6 +38,8 @@ def test_level_navigation_first_to_last() -> None:
         assert entry.level in [1, 2, 3]
         entry = nav.next()
 
+    assert nav.on_last() is True
+
     # Level 1
     assert nav.increase_nav_level() == 1
     entry = nav.first()
@@ -45,6 +47,8 @@ def test_level_navigation_first_to_last() -> None:
     while entry is not None:
         assert entry.level == nav.get_nav_level()
         entry = nav.next()
+
+    assert nav.on_last() is True
 
     # Level 2
     assert nav.increase_nav_level() == 2
@@ -54,6 +58,8 @@ def test_level_navigation_first_to_last() -> None:
         assert entry.level == nav.get_nav_level()
         entry = nav.next()
 
+    assert nav.on_last() is True
+
     # Level 3
     assert nav.increase_nav_level() == 3
     entry = nav.first()
@@ -61,6 +67,8 @@ def test_level_navigation_first_to_last() -> None:
     while entry is not None:
         assert entry.level == nav.get_nav_level()
         entry = nav.next()
+
+    assert nav.on_last() is True
 
 
 def test_level_navigation_last_to_first() -> None:
@@ -74,6 +82,8 @@ def test_level_navigation_last_to_first() -> None:
         assert entry.level in [1, 2, 3]
         entry = nav.prev()
 
+    assert nav.on_first() is True
+
     # Level 1
     assert nav.increase_nav_level() == 1
     entry = nav.last()
@@ -81,6 +91,8 @@ def test_level_navigation_last_to_first() -> None:
     while entry is not None:
         assert entry.level == nav.get_nav_level()
         entry = nav.prev()
+
+    assert nav.on_first() is True
 
     # Level 2
     assert nav.increase_nav_level() == 2
@@ -90,6 +102,8 @@ def test_level_navigation_last_to_first() -> None:
         assert entry.level == nav.get_nav_level()
         entry = nav.prev()
 
+    assert nav.on_first() is True
+
     # Level 3
     assert nav.increase_nav_level() == 3
     entry = nav.last()
@@ -97,3 +111,5 @@ def test_level_navigation_last_to_first() -> None:
     while entry is not None:
         assert entry.level == nav.get_nav_level()
         entry = nav.prev()
+
+    assert nav.on_first() is True

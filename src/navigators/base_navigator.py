@@ -10,25 +10,27 @@ class BaseNavigator:
     Navigation means that the class implements a "cursor" that retains the currently selected item of the list.
 
     Methods:
-        - first() : returns the first item
-        - next() : returns the next item or None if there is no next element in the list
-        - prev() : returns the previous item or None if there is no previous element in the list
-        - last() : returns the last item
-        - current() : returns the current item
-        - navigate_to(id) : returns the item by its id
-        - all() : return all items
-        - add_callback(func(item)) : add a callback function, triggered on navigation
+        - first() : returns the first item.
+        - next() : returns the next item or None if there is no next element in the list.
+        - prev() : returns the previous item or None if there is no previous element in the list.
+        - last() : returns the last item.
+        - current() : returns the current item.
+        - navigate_to(id) : returns the item by its id.
+        - all() : return all items.
+        - add_callback(func(item)) : add a callback function, triggered on navigation (when the current item changes).
 
-    Note(s):
+    Notes:
+        - on instanciation, the first item of the list is pointed.
         - the navigate_to(id) method works only if the items have an 'id' attribute.
           If the method fails, no exception is raised, but it simply returns None.
     """
 
-    def __init__(self, items: List[Any]) -> None:
+    def __init__(self, items: List[Any], callback: Callable[[Any], None] = None) -> None:
         """Instanciate a `BasicNavigator` class.
 
         Args:
             items (List[Any]]): a list of elements.
+            callback (callback: Callable[[Any], None], optional) : a function to be called on navigation events.
 
         Raises:
             ValueError: if the supplied list is not iterable
@@ -62,7 +64,7 @@ class BaseNavigator:
         self._id_list: List[str] = None
         self._current_index: int = 0
         self._max_index: int = len(self._items) - 1
-        self._on_navigate: Callable[[Any], None] = None
+        self._on_navigate: Callable[[Any], None] = callback
 
         logger.debug(f"{type(self)} instance created with {len(self._items)} element(s) of type {items_type}.")
 
@@ -78,15 +80,31 @@ class BaseNavigator:
     def length(self) -> int:
         return len(self._items)
 
-    def add_callback(self, func: Callable[[Any], None]) -> None:
-        """Adds a navigation callback function.
+    def set_callback(self, callback: Callable[[Any], None]) -> None:
+        """Sets a navigation callback function.
 
         It allows to attach an external navigation handler.
 
         Args:
             func (Callable[[Any],Any]): a callback function which can handle the current item as a parameter.
         """
-        self._on_navigate = func
+        self._on_navigate = callback
+
+    def on_first(self) -> bool:
+        """Test if the current item is the first one.
+
+        Returns:
+            bool: True if the current item is the first one, False otherwise.
+        """
+        return self._current_index == 0
+
+    def on_last(self) -> bool:
+        """Test if the current item is the last one.
+
+        Returns:
+            bool: True if the current item is the last one, False otherwise.
+        """
+        return self._current_index == self._max_index
 
     def all(self) -> List[Any]:
         """Return all items as a list.
@@ -106,7 +124,8 @@ class BaseNavigator:
         self._current_index = 0
         item = self._items[self._current_index]
 
-        if item is not None and self._on_navigate:
+        # Perform a callback if required
+        if self._on_navigate is not None:
             self._on_navigate(item)
 
         return item
@@ -117,21 +136,17 @@ class BaseNavigator:
         Returns:
             Union[Any, None]: the next item in the list or None if no next item.
         """
-        item = None
-        if self._current_index + 1 < self._max_index:
-            self._current_index = self._current_index + 1
+        if self._current_index + 1 <= self._max_index:
+            self._current_index += 1
             item = self._items[self._current_index]
+        else:
+            return None
 
-        if item is not None and self._on_navigate:
+        # Perform a callback if required
+        if self._on_navigate is not None:
             self._on_navigate(item)
 
         return item
-
-    def is_last(self) -> bool:
-        return self._current_index == self._max_index
-
-    def is_first(self) -> bool:
-        return self._current_index == 0
 
     def prev(self) -> Union[Any, None]:
         """Go to the previous item.
@@ -139,12 +154,14 @@ class BaseNavigator:
         Returns:
             Union[Any, None]: the previous item in the list or None if no previous item.
         """
-        item = None
         if self._current_index - 1 >= 0:
             self._current_index = self._current_index - 1
             item = self._items[self._current_index]
+        else:
+            return None
 
-        if item is not None and self._on_navigate:
+        # Perform a callback if required
+        if self._on_navigate:
             self._on_navigate(item)
 
         return item
@@ -158,7 +175,8 @@ class BaseNavigator:
         self._current_index = self._max_index
         item = self._items[self._current_index]
 
-        if item is not None and self._on_navigate:
+        # Perform a callback if required
+        if self._on_navigate:
             self._on_navigate(item)
 
         return item
@@ -193,7 +211,7 @@ class BaseNavigator:
         try:
             item = self._items[self._id_list.index(item_id)]
             logger.debug(f"Item with id {item_id} of type {type(item)} found.")
-            if item is not None and self._on_navigate:
+            if self._on_navigate is not None:
                 self._on_navigate(item)
             return item
         except ValueError:

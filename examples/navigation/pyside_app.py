@@ -1,9 +1,10 @@
 import os
 import sys
+import tempfile
+import time
 from typing import List
 
-import pygame
-import PySide6.QtCore
+import vlc
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QTextEdit, QVBoxLayout, QWidget
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QP
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 
 from daisybook import DaisyBook
+from models.audio import Audio
 from navigators.book_navigator import BookNavigator
 from sources.folder_source import FolderDtbSource
 from utilities.logconfig import LogLevel
@@ -19,22 +21,19 @@ from utilities.logconfig import LogLevel
 # Clean the modules search path
 del sys.path[-1]
 
-pygame.mixer.init()
 
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../../tests/samples/local/vf_2024_02_09")
 
 
-# Prints PySide6 version
-print(PySide6.__version__)
+def get_sound_as_temp_file(data: bytes) -> str:
+    file_name = None
+    with tempfile.NamedTemporaryFile(prefix="dtb_", mode="wb", delete=False) as temp_file:
+        temp_file.write(data)
+        file_name = temp_file.name
+    return file_name
 
-# Prints the Qt version used to compile PySide6
-print(PySide6.QtCore.__version__)
 
-print(SAMPLE_DTB_PROJECT_PATH_1)
-
-
-# class MyWidget(QWidget):
 class MainWindow(QMainWindow):
     TITLE_FONT = QFont("Verdana", 14, QFont.Bold)
     SECTION_FONT = QFont("Verdana", 12, QFont.Bold)
@@ -48,6 +47,9 @@ class MainWindow(QMainWindow):
         self.book = book
         self.navigator = BookNavigator(self.book)
 
+        # creating a basic vlc instance
+        self.vlc_player = vlc.MediaPlayer()
+        time.sleep(1)
         self.playing: bool = False
 
         self.btn_first: QPushButton = None
@@ -81,7 +83,7 @@ class MainWindow(QMainWindow):
 
         # Set book title
         self.book_title.setText(self.book.title)
-        self.section_text.setText(self.navigator.section.text.content)
+        self.section_text.setText(self.navigator.current_section.text.content)
         self.set_status("First TOC item ready to be played...")
 
         # Attach button action handlers
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     def update_gui(self):
-        self.section_text.setText(self.navigator.section.text.content)
+        self.section_text.setText(self.navigator.current_section.text.content)
 
     def button_actions_setup(self) -> None:
         self.btn_pause.clicked.connect(self.on_play_pause_click)
@@ -112,7 +114,7 @@ class MainWindow(QMainWindow):
         self.play_clips()
 
     def on_next_click(self) -> None:
-        if self.navigator.toc.is_last():
+        if self.navigator.toc.on_last():
             self.set_status("We are on the last item")
         else:
             self.navigator.toc.next()
@@ -121,7 +123,7 @@ class MainWindow(QMainWindow):
         self.play_clips()
 
     def on_prev_click(self) -> None:
-        if self.navigator.toc.is_first():
+        if self.navigator.toc.on_first():
             self.set_status("We are on the first item")
         else:
             self.navigator.toc.prev()
@@ -135,30 +137,116 @@ class MainWindow(QMainWindow):
         self.update_gui()
         self.play_clips()
 
+    def play_clip(self, clip: Audio) -> None:
+        """Play a clip.
+
+        It's a bit complicated, but works.
+
+        We did some research on the python-vlc package to make it work...
+
+        Args:
+            clip (Audio): the clip.
+        """
+        # Issue a 'play' to force data load
+        self.vlc_player.play()
+
+        # Wait until play state OK
+        while self.vlc_player.get_state().value != 3:
+            QApplication.processEvents()
+            time.sleep(0.1)  # Be nice with CPU
+
+        # Issue a 'pause' to performe quick calculations
+        self.vlc_player.pause()
+
+        # Wait until ppause state OK
+        while self.vlc_player.get_state().value != 4:
+            QApplication.processEvents()
+            time.sleep(0.1)  # Be nice with CPU
+
+        # Get MP3 size, in seconds
+        mp3_length = self.vlc_player.get_length() / 1000
+
+        # Use fraction of the total length (0..1)
+        start_pc = clip.begin / mp3_length
+        end_pc = (clip.begin + clip.duration - 0.1) / mp3_length  #! - 0.1 is to commpensate processing overhead
+
+        # Set the clip start position & play !
+        self.vlc_player.set_position(start_pc)
+        self.vlc_player.play()
+
+        # Wait until play state OK
+        while self.vlc_player.get_state().value != 3:
+            QApplication.processEvents()
+            time.sleep(0.1)  # Be nice with CPU
+
+        self.playing = True
+        while self.vlc_player.get_state().value == 3:
+            # Get curren position
+            pos = self.vlc_player.get_position()
+
+            # Check if end reached...
+            if pos >= end_pc:
+                self.vlc_player.pause()
+                self.playing = False
+                break
+
+            QApplication.processEvents()
+            time.sleep(0.1)  # Be nice with CPU
+
     def play_clips(self):
-        current_source: str = None
         section = self.navigator.sections.first()
         while section:
             self.set_status(f"Section{section.id}")
-            self.section_text.setText(self.navigator.section.text.content)
+            self.section_text.setText(self.navigator.current_section.text.content)
+
             clip = self.navigator.clips.first()
+            current_source = ""
+            current_file = ""
             while clip:
                 self.set_status(f"{clip.src} : start={clip.begin}, end={clip.end}")
                 if current_source != clip.src:
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load(clip.get_sound(as_bytes_io=True))
-                current_source = clip.src
-                pygame.mixer.music.play(start=clip.begin)
+                    try:
+                        os.unlink(current_file)
+                    except FileNotFoundError:
+                        ...
+                    current_file = get_sound_as_temp_file(clip.get_sound())
+                    current_source = clip.src
+                    media = vlc.Media(current_file)
+                    self.vlc_player.set_media(media)
+
+                # Issue a 'play' to force data load
+                self.vlc_player.play()
+                while self.vlc_player.get_state().value != 3:
+                    QApplication.processEvents()
+
+                # Issue a 'pause' to performe quick calculations
+                self.vlc_player.pause()
+                while self.vlc_player.get_state().value != 4:
+                    QApplication.processEvents()
+
+                # Get MP3 size, in seconds
+                mp3_length = self.vlc_player.get_length() / 1000
+
+                # Use fraction of the total length (0..1)
+                start_pc = clip.begin / mp3_length
+                end_pc = (clip.begin + clip.duration - 0.1) / mp3_length  #! - 0.1 is to commpensate processing overhead
+                self.vlc_player.set_position(start_pc)
+
+                self.vlc_player.play()
+                while self.vlc_player.get_state().value != 3:
+                    QApplication.processEvents()
+                    time.sleep(0.1)  # Be nice with CPU
+
                 self.playing = True
-                while True:
-                    pos = pygame.mixer.music.get_pos() / 1000
-                    self.set_status(f"{pos}/{clip.end}")
-                    if pos >= clip.end:
-                        pygame.mixer.music.pause()
-                        self.set_status(f"Stopped : {pos} / {clip.end}")
+                while self.vlc_player.get_state().value == 3:
+                    pos = self.vlc_player.get_position()
+                    if pos >= end_pc:
+                        self.vlc_player.pause()
                         self.playing = False
                         break
                     QApplication.processEvents()
+                    time.sleep(0.1)  # Be nice with CPU
+
                 clip = self.navigator.clips.next()
             section = self.navigator.sections.next()
 
@@ -166,12 +254,10 @@ class MainWindow(QMainWindow):
         if self.playing is False:
             self.set_status("Playing")
             self.btn_pause.setText("Pause")
-            pygame.mixer.music.unpause()
             self.playing = True
         else:
             self.set_status("Paused")
             self.btn_pause.setText("Play")
-            pygame.mixer.music.pause()
             self.playing = False
 
     def _create_buttons(self) -> List[QPushButton]:
@@ -190,7 +276,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     LogLevel.set(LogLevel.NONE)
-    source = FolderDtbSource(SAMPLE_DTB_PROJECT_PATH_2)
+    source = FolderDtbSource(SAMPLE_DTB_PROJECT_PATH_1)
     source.cache_size = 50
     source.enable_stats(True)
     daisy_book = DaisyBook(source)

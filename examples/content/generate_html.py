@@ -13,8 +13,6 @@ from typing import List
 from loguru import logger
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
-
-
 # Import daisy-dtb modules
 from daisybook import DaisyBook
 from navigators.book_navigator import BookNavigator

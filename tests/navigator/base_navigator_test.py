@@ -120,7 +120,7 @@ def test_dict_without_id_list_navigation():
     # Get the first element
     assert nav.first() == DICT_LIST_WITHOUT_ID[0]
 
-    # Get the previous element (shoud be None)
+    # Get the previous element (should be none)
     assert nav.prev() is None
 
     # The current element should still be the first one
@@ -132,7 +132,7 @@ def test_dict_without_id_list_navigation():
     # Get the last element
     assert nav.last() == DICT_LIST_WITHOUT_ID[5]
 
-    # Get the next element (shoud be None)
+    # Get the next element (shoud be the None)
     assert nav.next() is None
 
     # Get the previous element (shoud be the 5th one)
@@ -151,7 +151,7 @@ def test_class_with_id_list_navigation():
     # Get the first element
     assert nav.first() == CLASS_LIST_WITH_ID[0]
 
-    # Get the previous element (shoud be None)
+    # Get the previous element (shoud ne None)
     assert nav.prev() is None
 
     # The current element should still be the first one
@@ -182,7 +182,7 @@ def test_class_without_id_list_navigation():
     # Get the first element
     assert nav.first() == CLASS_LIST_WITHOUT_ID[0]
 
-    # Get the previous element (shoud be None)
+    # Get the previous element (should be None)
     assert nav.prev() is None
 
     # The current element should still be the first one
