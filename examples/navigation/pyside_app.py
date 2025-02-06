@@ -1,3 +1,19 @@
+"""
+This is a very basic PySide6 application that shows what we can do with the daisy-dtb package.
+
+In this QApplication based application we do this :
+
+    - Setup of a Daisy Book source with `FolderDtbSource`.
+    - Create a `DaisyBook` instance from the source.
+    - Pass the `DaisyBook` to a `QMainWindow`.
+    - Create GUI elements (`QtWidgets`).
+    - Handle `QPushButton` events to navigate in the book
+
+Notes :
+
+    - To play the audio clips, the `python-vlc` package is used.
+"""
+
 import os
 import sys
 import tempfile
@@ -21,16 +37,28 @@ from utilities.logconfig import LogLevel
 # Clean the modules search path
 del sys.path[-1]
 
-
+APP_TITLE = "DAISY 2.02 Digital Talking Book Reader"
 SAMPLE_DTB_PROJECT_PATH_1 = os.path.join(os.path.dirname(__file__), "../../tests/samples/valentin_hauy")
 SAMPLE_DTB_PROJECT_PATH_2 = os.path.join(os.path.dirname(__file__), "../../tests/samples/local/vf_2024_02_09")
+BUFFER_FILE_PATH = f"{tempfile.gettempdir()}/_pyside_buffer_.tmp"
 
 
 def get_sound_as_temp_file(data: bytes) -> str:
-    file_name = None
-    with tempfile.NamedTemporaryFile(prefix="dtb_", mode="wb", delete=False) as temp_file:
-        temp_file.write(data)
-        file_name = temp_file.name
+    """Create a temporary sound file.
+
+    We do this because `python-vlc` cannot handle `BytesIO` as a media source.
+
+    This is not so nice, but allowed us to focus on GUI application.
+
+    Args:
+        data (bytes): the sound bytes.
+
+    Returns:
+        str: a file name.
+    """
+    with open(BUFFER_FILE_PATH, "wb") as file:
+        file.write(data)
+        file_name = file.name
     return file_name
 
 
@@ -40,21 +68,26 @@ class MainWindow(QMainWindow):
     STATUS_FONT = QFont("Verdana", 10)
 
     def __init__(self, book: DaisyBook):
+        """Instance initilization.
+
+        Args:
+            book (DaisyBook): the book to play with.
+        """
         super().__init__()
-        self.setWindowTitle("DAISY 2.02 Digital Talking Book Reader")
+        self.setWindowTitle(APP_TITLE)
         self.setFixedSize(800, 400)
 
         self.book = book
         self.navigator = BookNavigator(self.book)
 
         # creating a basic vlc instance
-        self.vlc_player = vlc.MediaPlayer()
+        self.vlc_instance = vlc.Instance()
+        self.vlc_player = self.vlc_instance.media_player_new()
         time.sleep(1)
-        self.playing: bool = False
 
+        # Buttons
         self.btn_first: QPushButton = None
         self.btn_next: QPushButton = None
-        self.btn_pause: QPushButton = None
         self.btn_prev: QPushButton = None
         self.btn_last: QPushButton = None
 
@@ -69,9 +102,10 @@ class MainWindow(QMainWindow):
         self.status = QLabel("Messages go here")
         self.status.setFont(MainWindow.STATUS_FONT)
 
-        # Layouts
+        # Page layout
         page_layout = QVBoxLayout()
 
+        # Buttons layout
         buttons_layout = QHBoxLayout()
         [buttons_layout.addWidget(_) for _ in self.buttons]
 
@@ -83,7 +117,7 @@ class MainWindow(QMainWindow):
 
         # Set book title
         self.book_title.setText(self.book.title)
-        self.section_text.setText(self.navigator.current_section.text.content)
+        self.section_text.setText(self.navigator.section_text)
         self.set_status("First TOC item ready to be played...")
 
         # Attach button action handlers
@@ -93,11 +127,12 @@ class MainWindow(QMainWindow):
         widget.setLayout(page_layout)
         self.setCentralWidget(widget)
 
-    def update_gui(self):
-        self.section_text.setText(self.navigator.current_section.text.content)
+    def closeEvent(self, event):
+        self.vlc_player.stop()
+        self._wait_and_process_events()
+        self.vlc_player.release()
 
     def button_actions_setup(self) -> None:
-        self.btn_pause.clicked.connect(self.on_play_pause_click)
         self.btn_first.clicked.connect(self.on_first_click)
         self.btn_next.clicked.connect(self.on_next_click)
         self.btn_prev.clicked.connect(self.on_prev_click)
@@ -110,7 +145,7 @@ class MainWindow(QMainWindow):
     def on_first_click(self) -> None:
         self.navigator.toc.first()
         self.set_status("First")
-        self.update_gui()
+        self.section_text.setText(self.navigator.section_text)
         self.play_clips()
 
     def on_next_click(self) -> None:
@@ -119,7 +154,7 @@ class MainWindow(QMainWindow):
         else:
             self.navigator.toc.next()
             self.set_status("")
-        self.update_gui()
+        self.section_text.setText(self.navigator.section_text)
         self.play_clips()
 
     def on_prev_click(self) -> None:
@@ -128,14 +163,37 @@ class MainWindow(QMainWindow):
         else:
             self.navigator.toc.prev()
             self.set_status("")
-        self.update_gui()
+        self.section_text.setText(self.navigator.section_text)
         self.play_clips()
 
     def on_last_click(self) -> None:
         self.navigator.toc.last()
         self.set_status("Last")
-        self.update_gui()
+        self.section_text.setText(self.navigator.section_text)
         self.play_clips()
+
+    def _wait_and_process_events(self):
+        status_text = ""
+        match self.vlc_player.get_state().value:
+            case 1:
+                status_text = "Opening"
+            case 2:
+                status_text = "Buffering"
+            case 3:
+                status_text = "Playing"
+            case 4:
+                status_text = "Paused"
+            case 5:
+                status_text = "Stopped"
+            case 6:
+                status_text = "Ended"
+            case 7:
+                status_text = "Error"
+            case _:
+                status_text = ""
+        self.set_status(status_text)
+        QApplication.processEvents()
+        time.sleep(0.1)  # Be nice with CPU
 
     def play_clip(self, clip: Audio) -> None:
         """Play a clip.
@@ -152,16 +210,14 @@ class MainWindow(QMainWindow):
 
         # Wait until play state OK
         while self.vlc_player.get_state().value != 3:
-            QApplication.processEvents()
-            time.sleep(0.1)  # Be nice with CPU
+            self._wait_and_process_events()
 
         # Issue a 'pause' to performe quick calculations
         self.vlc_player.pause()
 
-        # Wait until ppause state OK
+        # Wait until pause state OK
         while self.vlc_player.get_state().value != 4:
-            QApplication.processEvents()
-            time.sleep(0.1)  # Be nice with CPU
+            self._wait_and_process_events()
 
         # Get MP3 size, in seconds
         mp3_length = self.vlc_player.get_length() / 1000
@@ -176,102 +232,52 @@ class MainWindow(QMainWindow):
 
         # Wait until play state OK
         while self.vlc_player.get_state().value != 3:
-            QApplication.processEvents()
-            time.sleep(0.1)  # Be nice with CPU
+            self._wait_and_process_events()
 
-        self.playing = True
         while self.vlc_player.get_state().value == 3:
-            # Get curren position
+            # Get current position
             pos = self.vlc_player.get_position()
 
             # Check if end reached...
             if pos >= end_pc:
                 self.vlc_player.pause()
-                self.playing = False
                 break
-
-            QApplication.processEvents()
-            time.sleep(0.1)  # Be nice with CPU
+            self._wait_and_process_events()
+        self._wait_and_process_events()
 
     def play_clips(self):
-        section = self.navigator.sections.first()
+        _, section, clip = self.navigator.context
         while section:
             self.set_status(f"Section{section.id}")
-            self.section_text.setText(self.navigator.current_section.text.content)
+            self.section_text.setText(self.navigator.section_text)
 
             clip = self.navigator.clips.first()
             current_source = ""
-            current_file = ""
+            sound_file = ""
             while clip:
                 self.set_status(f"{clip.src} : start={clip.begin}, end={clip.end}")
                 if current_source != clip.src:
-                    try:
-                        os.unlink(current_file)
-                    except FileNotFoundError:
-                        ...
-                    current_file = get_sound_as_temp_file(clip.get_sound())
+                    sound_file = get_sound_as_temp_file(clip.get_sound())
                     current_source = clip.src
-                    media = vlc.Media(current_file)
+                    media = self.vlc_instance.media_new(sound_file)
                     self.vlc_player.set_media(media)
 
-                # Issue a 'play' to force data load
-                self.vlc_player.play()
-                while self.vlc_player.get_state().value != 3:
-                    QApplication.processEvents()
-
-                # Issue a 'pause' to performe quick calculations
-                self.vlc_player.pause()
-                while self.vlc_player.get_state().value != 4:
-                    QApplication.processEvents()
-
-                # Get MP3 size, in seconds
-                mp3_length = self.vlc_player.get_length() / 1000
-
-                # Use fraction of the total length (0..1)
-                start_pc = clip.begin / mp3_length
-                end_pc = (clip.begin + clip.duration - 0.1) / mp3_length  #! - 0.1 is to commpensate processing overhead
-                self.vlc_player.set_position(start_pc)
-
-                self.vlc_player.play()
-                while self.vlc_player.get_state().value != 3:
-                    QApplication.processEvents()
-                    time.sleep(0.1)  # Be nice with CPU
-
-                self.playing = True
-                while self.vlc_player.get_state().value == 3:
-                    pos = self.vlc_player.get_position()
-                    if pos >= end_pc:
-                        self.vlc_player.pause()
-                        self.playing = False
-                        break
-                    QApplication.processEvents()
-                    time.sleep(0.1)  # Be nice with CPU
+                    # Play the clip
+                    self.play_clip(clip)
 
                 clip = self.navigator.clips.next()
             section = self.navigator.sections.next()
-
-    def on_play_pause_click(self) -> None:
-        if self.playing is False:
-            self.set_status("Playing")
-            self.btn_pause.setText("Pause")
-            self.playing = True
-        else:
-            self.set_status("Paused")
-            self.btn_pause.setText("Play")
-            self.playing = False
 
     def _create_buttons(self) -> List[QPushButton]:
         self.btn_first = QPushButton("First")
         self.btn_first.setFixedSize(100, 60)
         self.btn_next = QPushButton("Next")
         self.btn_next.setFixedSize(100, 60)
-        self.btn_pause = QPushButton("Play")
-        self.btn_pause.setFixedSize(100, 60)
         self.btn_prev = QPushButton("Prev")
         self.btn_prev.setFixedSize(100, 60)
         self.btn_last = QPushButton("Last")
         self.btn_last.setFixedSize(100, 60)
-        return [self.btn_first, self.btn_next, self.btn_pause, self.btn_prev, self.btn_last]
+        return [self.btn_first, self.btn_next, self.btn_prev, self.btn_last]
 
 
 if __name__ == "__main__":

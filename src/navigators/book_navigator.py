@@ -56,6 +56,24 @@ class BookNavigator:
         return (self._current_entry, self._current_section, self._current_clip)
 
     @property
+    def section_text(self) -> str:
+        """Get the current section's text.
+
+        Returns:
+            str: the current section's text.
+        """
+        return self._current_section.text.content
+
+    @property
+    def toc_text(self) -> str:
+        """Get the current TOC entry's text.
+
+        Returns:
+            str: the current TOC entry's text.
+        """
+        return self._current_entry.text
+
+    @property
     def current_toc_entry(self) -> TocEntry:
         """Get the current TOC entry.
 

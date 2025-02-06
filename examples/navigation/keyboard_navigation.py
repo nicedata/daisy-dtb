@@ -11,12 +11,12 @@ In this command-line based application we do this :
 Key actions :
 
     - H or ? : print a help message
-    - F      : goto first TOC item
-    - N      : goto next TOC item
-    - P      : goto prvious TOC item
-    - L      : goto prvious TOC item
+    - F      : go to first TOC item
+    - N      : go to next TOC item
+    - P      : go to previous TOC item
+    - L      : go to last TOC item
     - A      : play current section audio clips
-    - Q      : Quit this application
+    - Q      : Quit the application
 
 Notes :
 
@@ -60,12 +60,12 @@ def print_usage() -> None:
     """Print usage message."""
     usage = [
         "? or H : Print this message",
-        "  F    : Goto first TOC item",
-        "  N    : Goto next TOC item",
-        "  P    : Goto prvious TOC item",
-        "  L    : Goto prvious TOC item",
+        "  F    : Go to first TOC item",
+        "  N    : Go to next TOC item",
+        "  P    : Go to previous TOC item",
+        "  L    : Go to last TOC item",
         "  A    : Play current section audio",
-        "  Q    : Quit this application",
+        "  Q    : Quit the application",
     ]
     print("\n".join(usage))
 
