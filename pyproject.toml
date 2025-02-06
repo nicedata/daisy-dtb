@@ -1,7 +1,7 @@
 [project]
 name = "daisy-dtb"
 description = "A library to deal with Daisy 2.02 digital talking books"
-version = "0.0.9"
+version = "0.0.10"
 
 authors = [{ "name" = "Martin Mohnhaupt", email = "m.mohnhaupt@bluewin.ch" }]
 maintainers = [
@@ -18,9 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-dependencies = [
-    "loguru>=0.7.3",
-]
+dependencies = ["loguru>=0.7.3"]
 
 [dependency-groups]
 dev = [
