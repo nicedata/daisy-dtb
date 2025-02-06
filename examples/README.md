@@ -34,6 +34,7 @@ Notes :
 <img src="./keyboard_navigation.png">
  <figcaption style="font-size: 0.9rem">Screenshot: A simple terminal-based application.</figcaption>
 </figure>   
+
 ### PySide6 Application
 
 The code is in `examples/navigation/pyside_app.py`.
