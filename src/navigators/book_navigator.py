@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Tuple
 
-from daisybook import DaisyBook
+from book.daisybook import DaisyBook
 from models import Audio, Section, TocEntry
 from navigators.clip_navigator import ClipNavigator
 from navigators.section_navigator import SectionNavigator

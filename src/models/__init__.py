@@ -1,9 +1,8 @@
-from models.audio import Audio
-from models.metadata import MetaData
-from models.reference import Reference
-from models.section import Section
-from models.smil import Smil
-from models.text import Text
-from models.toc_entry import TocEntry
+from .audio import Audio
+from .metadata import MetaData
+from .reference import Reference
+from .section import Section
+from .smil import Smil
+from .toc_entry import TocEntry
 
-__all__ = [MetaData, Audio, Reference, Section, Smil, Text, TocEntry]
+__all__ = ["Audio", "MetaData", "Reference", "Section", "Smil", "TocEntry"]

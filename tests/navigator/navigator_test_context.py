@@ -1,7 +1,7 @@
 import os
 
 
-from daisybook import DaisyBook
+from book.daisybook import DaisyBook
 from navigators.toc_navigator import TocNavigator
 from sources.folder_source import FolderDtbSource
 

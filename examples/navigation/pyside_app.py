@@ -28,7 +28,7 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QP
 # Adapt the modules search path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 
-from daisybook import DaisyBook
+from book.daisybook import DaisyBook
 from models.audio import Audio
 from navigators.book_navigator import BookNavigator
 from sources.folder_source import FolderDtbSource

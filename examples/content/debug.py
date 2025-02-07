@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 # Import daisy-dtb modules
-from daisybook import DaisyBook
+from book.daisybook import DaisyBook
 from navigators.book_navigator import BookNavigator
 from sources.folder_source import FolderDtbSource
 from utilities.logconfig import LogLevel
