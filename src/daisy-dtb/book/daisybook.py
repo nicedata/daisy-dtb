@@ -8,7 +8,7 @@ from loguru import logger
 from utilities.domlib import Document
 
 from models import MetaData, Reference, Smil, TocEntry
-from sources.source import DtbSource
+from sources import DtbSource
 
 
 class DaisyBookException(Exception):

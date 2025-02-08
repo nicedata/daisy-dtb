@@ -1,4 +1,4 @@
-from utilities.domlib import Document, DomFactory
+from utilities import Document, DomFactory
 
 from domlib_test_context import get_ncc_string
 

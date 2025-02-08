@@ -1,13 +1,11 @@
 from dataclasses import dataclass
 from typing import Any
-import pytest
-from utilities.domlib import Document
-from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
+import pytest
 from cache import Cache
-from sources.folder_source import FolderDtbSource
-from sources.source import DtbSource
-from sources.zip_source import ZipDtbSource
+from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
+from sources import DtbSource, FolderDtbSource, ZipDtbSource
+from utilities import Document
 
 
 @dataclass
