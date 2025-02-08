@@ -5,7 +5,7 @@ from .cache import Cache, CacheStats
 from .models import Audio, MetaData, Reference, Section, Smil
 from .navigators import BaseNavigator, BookNavigator, BookNavigatorException, ClipNavigator, SectionNavigator
 from .sources import DtbSource, FolderDtbSource, ZipDtbSource
-from .utilities import Document, DomFactory, Element, ElementList
+from .utilities import Document, DomFactory, Element, ElementList, Fetcher, LogLevel
 
 __all__ = [
     "DaisyBook",
@@ -29,4 +29,6 @@ __all__ = [
     "DomFactory",
     "Element",
     "ElementList",
+    "Fetcher",
+    "LogLevel",
 ]
