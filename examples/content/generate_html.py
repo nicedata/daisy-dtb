@@ -14,11 +14,7 @@ from loguru import logger
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 # Import daisy-dtb modules
-from book.daisybook import DaisyBook
-from navigators.book_navigator import BookNavigator
-from sources.folder_source import FolderDtbSource
-from sources.source import DtbSource
-from utilities.logconfig import LogLevel
+from daisy_dtb import BookNavigator, DaisyBook, DtbSource, FolderDtbSource, LogLevel
 
 # Clean the modules search path
 del sys.path[-1]
