@@ -1,6 +1,6 @@
 from typing import List
-from models import Section
-from navigators.base_navigator import BaseNavigator
+from ..models import Section
+from .base_navigator import BaseNavigator
 
 
 class SectionNavigator(BaseNavigator):

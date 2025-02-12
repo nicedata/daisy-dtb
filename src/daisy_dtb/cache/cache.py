@@ -6,7 +6,7 @@ from typing import Any
 
 from loguru import logger
 
-from cache.cachestats import CacheStats
+from .cachestats import CacheStats
 
 
 @dataclass

@@ -37,6 +37,6 @@ Homepage = "https://github.com/nicedata/daisy-dtb"
 Issues = "https://github.com/nicedata/daisy-dtb/issues"
 
 [tool.pytest.ini_options]
-pythonpath = "src/daisy-dtb"
+pythonpath = "src/"
 testpaths = ['tests/']
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

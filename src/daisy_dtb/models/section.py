@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from models.audio import Audio
-from models.text import Text
-from sources.source import DtbSource
+from .audio import Audio
+from .text import Text
+from ..sources.source import DtbSource
 
 
 @dataclass

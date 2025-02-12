@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 
 from loguru import logger
 
-from utilities.domlib import Document
+from ..utilities.domlib import Document
 
-from models.reference import Reference
-from sources.source import DtbSource
+from ..models.reference import Reference
+from ..sources.source import DtbSource
 
 
 @dataclass

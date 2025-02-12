@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from cache import Cache
 from dtbsource_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
-from sources import DtbSource, FolderDtbSource, ZipDtbSource
-from utilities import Document
+
+from daisy_dtb import Cache, Document, DtbSource, FolderDtbSource, ZipDtbSource
 
 
 @dataclass

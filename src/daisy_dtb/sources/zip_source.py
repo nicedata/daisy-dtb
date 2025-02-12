@@ -1,11 +1,12 @@
+import zipfile
 from io import BytesIO
 from typing import Union
-import zipfile
 
 from loguru import logger
-from utilities.domlib import Document
-from utilities.fetcher import Fetcher
-from sources.source import DtbSource
+
+from ..utilities.domlib import Document
+from ..utilities.fetcher import Fetcher
+from .source import DtbSource
 
 
 class ZipDtbSource(DtbSource):

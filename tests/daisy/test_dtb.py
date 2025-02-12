@@ -3,8 +3,8 @@
 import pytest
 from daisy_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL
 
-from book import DaisyBook, DaisyBookException
-from sources import FolderDtbSource
+from daisy_dtb.book import DaisyBook, DaisyBookException
+from daisy_dtb.sources import FolderDtbSource
 
 
 def test_bool_load_failure():

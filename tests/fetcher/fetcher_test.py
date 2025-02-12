@@ -1,4 +1,4 @@
-from utilities import Fetcher
+from daisy_dtb import Fetcher
 from fetcher_test_context import SAMPLE_DTB_PROJECT_PATH, SAMPLE_DTB_PROJECT_URL, SAMPLE_DTB_ZIP_PATH, SAMPLE_DTB_ZIP_URL, UNEXISTING_PATH, UNEXISTING_URL, UNEXISTING_ZIP
 
 

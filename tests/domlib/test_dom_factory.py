@@ -1,6 +1,6 @@
-from utilities import Document, DomFactory
-
 from domlib_test_context import get_ncc_string
+
+from daisy_dtb import Document, DomFactory
 
 
 def test_create_document_from_url():

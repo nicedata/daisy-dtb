@@ -3,8 +3,8 @@ from typing import List, override
 
 from loguru import logger
 
-from models import TocEntry
-from navigators.base_navigator import BaseNavigator
+from ..models.toc_entry import TocEntry
+from .base_navigator import BaseNavigator
 
 
 @dataclass

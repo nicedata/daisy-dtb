@@ -1,6 +1,6 @@
 import pytest
 
-from navigators import BaseNavigator
+from daisy_dtb import BaseNavigator
 
 
 class TestItemWithId:

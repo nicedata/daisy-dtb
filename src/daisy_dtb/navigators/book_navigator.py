@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Tuple
 
-from book.daisybook import DaisyBook
-from models import Audio, Section, TocEntry
-from navigators.clip_navigator import ClipNavigator
-from navigators.section_navigator import SectionNavigator
-from navigators.toc_navigator import TocNavigator
+from ..book.daisybook import DaisyBook
+from ..models import Audio, Section, TocEntry
+from .clip_navigator import ClipNavigator
+from .section_navigator import SectionNavigator
+from .toc_navigator import TocNavigator
 
 
 class BookNavigatorException(Exception):

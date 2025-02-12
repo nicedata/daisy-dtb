@@ -3,8 +3,8 @@ from typing import Any, Union
 
 from loguru import logger
 
-from cache.cache import Cache
-from utilities.domlib import Document, DomFactory
+from ..cache.cache import Cache
+from ..utilities.domlib import Document, DomFactory
 
 
 class DtbSource(ABC):

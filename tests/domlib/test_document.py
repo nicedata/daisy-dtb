@@ -1,7 +1,7 @@
 import pytest
 from domlib_test_context import get_ncc_document, get_smil_document
 
-from utilities import Document, Element
+from daisy_dtb import Document, Element
 
 ncc_document = get_ncc_document()
 smil_document = get_smil_document()

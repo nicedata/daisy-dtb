@@ -1,6 +1,6 @@
 from typing import List
-from models import Audio
-from navigators.base_navigator import BaseNavigator
+from ..models import Audio
+from .base_navigator import BaseNavigator
 
 
 class ClipNavigator(BaseNavigator):

@@ -3,7 +3,7 @@
 from .book import DaisyBook, DaisyBookException
 from .cache import Cache, CacheStats
 from .models import Audio, MetaData, Reference, Section, Smil
-from .navigators import BaseNavigator, BookNavigator, BookNavigatorException, ClipNavigator, SectionNavigator
+from .navigators import BaseNavigator, BookNavigator, BookNavigatorException, ClipNavigator, SectionNavigator, TocNavigator
 from .sources import DtbSource, FolderDtbSource, ZipDtbSource
 from .utilities import Document, DomFactory, Element, ElementList, Fetcher, LogLevel
 
@@ -22,6 +22,7 @@ __all__ = [
     "BookNavigatorException",
     "ClipNavigator",
     "SectionNavigator",
+    "TocNavigator",
     "DtbSource",
     "FolderDtbSource",
     "ZipDtbSource",

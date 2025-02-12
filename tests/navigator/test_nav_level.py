@@ -1,6 +1,6 @@
 from navigator_test_context import folder_book
 
-from navigators import TocNavigator
+from daisy_dtb import TocNavigator
 
 
 def test_nav_level() -> None:

@@ -3,12 +3,12 @@ from typing import List
 
 from loguru import logger
 
-from utilities.domlib import Document
-from models.audio import Audio
-from models.reference import Reference
-from models.section import Section
-from models.text import Text
-from sources.source import DtbSource
+from ..utilities.domlib import Document
+from .audio import Audio
+from .reference import Reference
+from .section import Section
+from .text import Text
+from ..sources.source import DtbSource
 
 
 @dataclass

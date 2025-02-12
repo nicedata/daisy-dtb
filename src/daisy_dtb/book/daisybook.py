@@ -5,10 +5,10 @@ from typing import List, Union
 
 from loguru import logger
 
-from utilities.domlib import Document
+from ..utilities.domlib import Document
 
-from models import MetaData, Reference, Smil, TocEntry
-from sources import DtbSource
+from ..models import MetaData, Reference, Smil, TocEntry
+from ..sources import DtbSource
 
 
 class DaisyBookException(Exception):

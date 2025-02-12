@@ -1,7 +1,8 @@
 from typing import Union
-from utilities.domlib import Document
-from utilities.fetcher import Fetcher
-from sources.source import DtbSource
+
+from ..utilities.domlib import Document
+from ..utilities.fetcher import Fetcher
+from .source import DtbSource
 
 
 class FolderDtbSource(DtbSource):

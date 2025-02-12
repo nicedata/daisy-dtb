@@ -3,10 +3,10 @@ from typing import List
 
 from loguru import logger
 
-from models.reference import Reference
-from models.section import Section
-from models.smil import Smil
-from sources.source import DtbSource
+from .reference import Reference
+from .section import Section
+from .smil import Smil
+from ..sources.source import DtbSource
 
 
 @dataclass
