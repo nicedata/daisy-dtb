@@ -64,6 +64,26 @@ class TocNavigator(BaseNavigator):
         """
         return self._current_nav_level
 
+    def can_increase_nav_level(self) -> bool:
+        """Check if the navigation level can be increased.
+
+        Returns:
+            bool: True if can be increased, False otherwise.
+        """
+        if self._current_nav_level + 1 > self._max_nav_level:
+            return False
+        return True
+
+    def can_decrease_nav_level(self) -> bool:
+        """Check if the navigation level can be decreased.
+
+        Returns:
+            bool: True if can be decreased, False otherwise.
+        """
+        if self._current_nav_level - 1 < 0:
+            return False
+        return True
+
     def increase_nav_level(self) -> int:
         """Increase the navigation level.
 
