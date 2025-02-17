@@ -1,6 +1,6 @@
 import zipfile
 from io import BytesIO
-from typing import List, Union
+from typing import Union
 
 from loguru import logger
 
@@ -35,26 +35,22 @@ class ZipDtbSource(DtbSource):
             return cached_data
 
         # Retrieve the resource fron the ZIP file
-        search_path: List[str] = [""]
+        resource_path = ""
         with zipfile.ZipFile(self.bytes_io, mode="r") as archive:
             # Build a search path list from the ZIP directories
             for info in archive.infolist():
                 if info.is_dir():
-                    search_path.append(info.filename)
-
-            data: bytes = None
-
-            # Search the resources
-            for path in search_path:
-                try:
-                    data = archive.read(path + resource_name)
-                    break
-                except KeyError:
                     continue
+                if resource_name in info.filename:
+                    resource_path = info.filename
+                    break
 
-        if data is None:
-            logger.error(f"Error: archive {self._base_path} does not contain file {resource_name}")
-            return None
+            # Search the resource
+            try:
+                data = archive.read(resource_path)
+            except KeyError:
+                logger.error(f"Error: archive {self._base_path} does not contain resource '{resource_name}'.")
+                return None
 
         # Try to create a Document
         doc = DtbSource.convert_to_document(data)

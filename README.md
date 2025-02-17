@@ -34,7 +34,7 @@ For development, following additional packages are used :
 - `pylint` : https://www.pylint.org/
 - `pytest-cov` : https://pypi.org/project/pytest-cov/
 - `getkey` : https://github.com/kcsaff/getkey
-- `pygame`  : https://www.pygame.org/news
+- `pygame`  : https://www.pygame.org
 
 Thanks to all these guys helping us to develop nice software and letting us have fun doing it !
 
