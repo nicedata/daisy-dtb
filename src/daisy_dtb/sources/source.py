@@ -67,7 +67,6 @@ class DtbSource(ABC):
         Returns:
             Union[Document | bytes]: a document or the original bytes.
         """
-        # Try to create a Document
         doc = DomFactory.create_document_from_bytes(data)
         if type(doc) is not type(data):
             logger.debug(f"Converted {type(data)} to {type(doc)}.")

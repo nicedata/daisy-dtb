@@ -1,4 +1,4 @@
-from domlib_test_context import get_ncc_string
+from domlib_test_context import get_ncc_string, get_other_ncc_string
 
 from daisy_dtb import Document, DomFactory
 
@@ -37,3 +37,10 @@ def test_create_document_from_string():
     string = ""
     document = DomFactory.create_document_from_string(string)
     assert document is None
+
+
+def test_create_document_from_non_utf_bytes():
+    bytes = ""
+    bytes = get_other_ncc_string()
+    document = DomFactory.create_document_from_bytes(bytes)
+    assert type(document) is Document

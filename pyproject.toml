@@ -1,7 +1,7 @@
 [project]
 name = "daisy-dtb"
 description = "A library to deal with Daisy 2.02 digital talking books"
-version = "0.0.16"
+version = "0.0.17"
 
 authors = [{ "name" = "Martin Mohnhaupt", email = "m.mohnhaupt@bluewin.ch" }]
 maintainers = [
@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-dependencies = ["loguru>=0.7.3"]
+dependencies = ["chardet>=5.2.0", "loguru>=0.7.3"]
 
 [dependency-groups]
 dev = [
@@ -38,5 +38,5 @@ Issues = "https://github.com/nicedata/daisy-dtb/issues"
 
 [tool.pytest.ini_options]
 pythonpath = "src/"
-testpaths = ['tests/dtbsource']
+testpaths = ['tests']
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

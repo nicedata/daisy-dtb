@@ -9,6 +9,7 @@ from urllib.error import HTTPError, URLError
 from xml.dom.minidom import parseString as xdm_parse_string
 from xml.parsers.expat import ExpatError
 
+import chardet
 from loguru import logger
 
 
@@ -277,8 +278,17 @@ class DomFactory:
         if not isinstance(data, bytes):
             return data
 
+        # Try to get the data encoding
+        detector = chardet.universaldetector.UniversalDetector()
+        detector.feed(data)
+        detector.close()
+
+        # Set the correct encoding
+        encoding = detector.result["encoding"]
+        encoding = encoding.lower() if encoding else "utf-8"
+
         try:
-            string = data.decode("utf-8")
+            string = data.decode(encoding)
             return DomFactory.create_document_from_string(string)
         except UnicodeDecodeError:
             ...
